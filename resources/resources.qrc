@@ -1,0 +1,9 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/">
+        <file>icons/synclens-healthy.png</file>
+        <file>icons/synclens-stopped.png</file>
+        <file>icons/synclens-error.png</file>
+        <file>icons/synclens-connecting.png</file>
+    </qresource>
+</RCC>

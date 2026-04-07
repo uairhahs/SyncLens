@@ -1,0 +1,52 @@
+#pragma once
+
+#include <QWidget>
+#include <QString>
+
+QT_BEGIN_NAMESPACE
+class QWebEngineView;
+class QWebEnginePage;
+class QWebEngineProfile;
+class QStackedWidget;
+class QLabel;
+class QPushButton;
+class QAuthenticator;
+class QUrl;
+QT_END_NAMESPACE
+
+class CredentialStore;
+
+class WebViewHost : public QWidget
+{
+    Q_OBJECT
+public:
+    explicit WebViewHost(QWidget *parent = nullptr);
+
+    void loadUrl(const QString &url);
+    void setUrl(const QString &url);
+    void showOfflinePage(const QString &message);
+    void showWebView();
+
+signals:
+    void openInBrowserRequested(const QString &url);
+
+private:
+    void onAuthRequired(const QUrl &requestUrl, QAuthenticator *authenticator);
+
+    // Profile must outlive the page and view — declared first so it is
+    // destroyed last (Qt child destruction is reverse-construction order).
+    QWebEngineProfile *m_profile;
+    QWebEnginePage    *m_page;
+
+    QStackedWidget *m_stack;
+    QWebEngineView *m_webView;
+    QWidget        *m_offlinePage;
+    QLabel         *m_offlineLabel;
+    QPushButton    *m_openBrowserButton;
+    QString         m_currentUrl;
+
+    // Tracks how many times authenticationRequired has fired for the current
+    // page load. 0 = first attempt (try stored creds silently);
+    // 1+ = stored creds failed or user cancelled (show dialog).
+    int m_authAttempt = 0;
+};

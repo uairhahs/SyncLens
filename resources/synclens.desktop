@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=SyncLens
+Comment=Unofficial Qt wrapper for the Resilio Sync WebUI
+Exec=synclens
+Icon=synclens
+Type=Application
+Categories=Network;FileTransfer;
+StartupNotify=false
