@@ -64,13 +64,13 @@ cmake --build build --parallel
 - [X] Add support for session persistence across multiple Sync instances with separate profiles and tray icons
 - [X] Add a "Quit SyncLens" option to the tray menu that gracefully shuts down the application
 - [X] Run as a service so it can be enabled at login and can run in the background
+- [X] Implement a "Open WebUI in browser" option that launches the default browser to the WebUI URL
+- [X] Add a "Refresh" option to the tray menu to manually check the connection status
+- [X] Set up arch pkgbuild and deb/rpm spec files for easier distribution
 
 ## Todo
 
-- [ ] Implement a "Open WebUI in browser" option that launches the default browser to the WebUI URL
-- [ ] Add a "Refresh" option to the tray menu to manually check the connection status
 - [ ] Implement a dark mode toggle that applies a custom stylesheet to the WebUI
-- [ ] Create .deb and .rpm packages for easier installation on popular distributions
 - [ ] Implement a "Reconnect" option that restarts the SyncLens process if the WebUI becomes unresponsive
 - [ ] Implement a "Check for updates" feature that notifies users when a new version of SyncLens is available on GitHub
 - [ ] Add support for custom icons and themes to better integrate with different desktop environments

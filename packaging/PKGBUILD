@@ -1,0 +1,42 @@
+# Maintainer: uairhahs <https://github.com/uairhahs>
+pkgname=synclens
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Unofficial Qt wrapper for the Resilio Sync WebUI"
+arch=('x86_64')
+url="https://github.com/uairhahs/SyncLens"
+license=('MIT')
+depends=(
+    'qt6-webengine'
+    'qt6-base'
+)
+optdepends=(
+    'libsecret: secure credential storage via GNOME Keyring or KWallet'
+)
+makedepends=(
+    'cmake'
+    'ninja'
+    'qt6-tools'       # for moc/rcc/uic
+    'libsecret'       # optional at runtime, required at build time to enable the feature
+    'pkg-config'
+)
+source=("$pkgname-$pkgver.tar.gz::https://github.com/uairhahs/SyncLens/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')  # replace with actual sha256 after tagging a release
+
+prepare() {
+    cd "SyncLens-$pkgver"
+}
+
+build() {
+    cmake \
+        -B build \
+        -S "SyncLens-$pkgver" \
+        -G Ninja \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_INSTALL_PREFIX=/usr
+    cmake --build build
+}
+
+package() {
+    DESTDIR="$pkgdir" cmake --install build
+}
