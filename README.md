@@ -45,38 +45,44 @@ cmake --build build --parallel
 
 ## Features
 
-| Feature | Details |
-|---|---|
-| Embedded WebUI | Full Resilio Sync interface inside a native window, no browser tab needed |
-| System tray | One-click access, status indicator, open in browser, quit |
-| Health monitor | Detects when Resilio is stopped or unreachable and shows a clear offline page |
-| Credential storage | Passwords stored in GNOME Keyring or KWallet via libsecret (when available) |
-| Session persistence | Stays signed in across restarts using a persistent browser profile |
-| Window geometry | Remembers size and position between sessions |
-| Start minimized | Launch straight to tray, configurable in Settings |
+| Feature             | Details                                                                       |
+| ------------------- | ----------------------------------------------------------------------------- |
+| Embedded WebUI      | Full Resilio Sync interface inside a native window, no browser tab needed     |
+| System tray         | One-click access, status indicator, open in browser, quit                     |
+| Health monitor      | Detects when Resilio is stopped or unreachable and shows a clear offline page |
+| Credential storage  | Passwords stored in GNOME Keyring or KWallet via libsecret (when available)   |
+| Session persistence | Stays signed in across restarts using a persistent browser profile            |
+| Window geometry     | Remembers size and position between sessions                                  |
+| Start minimized     | Launch straight to tray, configurable in Settings                             |
+| Launch on login     | XDG autostart entry written automatically; optional systemd user service      |
 
 ---
 
+## Done
+
+- [X] Make a logo and app icon to replace the default Qt one and give it a distinct design language
+- [X] Add support for session persistence across multiple Sync instances with separate profiles and tray icons
+- [X] Add a "Quit SyncLens" option to the tray menu that gracefully shuts down the application
+- [X] Run as a service so it can be enabled at login and can run in the background
+
 ## Todo
 
-- [ ] Make a logo and app icon to replace the default Qt one and give it a distinct design language
-- [ ] Add support for session persistence across multiple Sync instances with separate profiles and tray icons
+- [ ] Implement a "Open WebUI in browser" option that launches the default browser to the WebUI URL
 - [ ] Add a "Refresh" option to the tray menu to manually check the connection status
 - [ ] Implement a dark mode toggle that applies a custom stylesheet to the WebUI
 - [ ] Create .deb and .rpm packages for easier installation on popular distributions
 - [ ] Implement a "Reconnect" option that restarts the SyncLens process if the WebUI becomes unresponsive
-- [ ] Add a "Quit SyncLens" option to the tray menu that gracefully shuts down the application
 - [ ] Implement a "Check for updates" feature that notifies users when a new version of SyncLens is available on GitHub
 - [ ] Add support for custom icons and themes to better integrate with different desktop environments
 
 ## Tray icon states
 
-| Colour | Meaning |
-|---|---|
-| Green | Resilio Sync is running and the WebUI is reachable |
-| Amber | Connecting or status unknown |
-| Grey | Daemon is stopped |
-| Red | WebUI is not responding or an error occurred |
+| Colour | Meaning                                            |
+| ------ | -------------------------------------------------- |
+| Green  | Resilio Sync is running and the WebUI is reachable |
+| Amber  | Connecting or status unknown                       |
+| Grey   | Daemon is stopped                                  |
+| Red    | WebUI is not responding or an error occurred       |
 
 ---
 
@@ -84,14 +90,33 @@ cmake --build build --parallel
 
 Open **File > Settings** to configure:
 
+- **Name** — label shown in the window title and tray tooltip for this instance
 - **WebUI URL** — change if Resilio is bound to a non-default address or port
 - **Start minimized to tray** — launch without showing the main window
-- **Launch on login** — add an XDG autostart entry
+- **Launch on login** — writes `~/.config/autostart/synclens.desktop` so your desktop environment starts SyncLens automatically; uncheck to remove it
 - **Desktop notifications** — toggle wrapper notifications on or off
+
+---
+
+## Running as a systemd user service (optional)
+
+After installing SyncLens, you can manage it as a proper background service:
+
+```bash
+# Enable autostart via systemd (alternative to the Settings checkbox)
+systemctl --user enable --now synclens.service
+
+# Check status
+systemctl --user status synclens.service
+
+# Disable
+systemctl --user disable --now synclens.service
+```
+
+The service unit is installed to `$PREFIX/lib/systemd/user/synclens.service` and targets `graphical-session.target`, so it starts only after your desktop session is ready.
 
 ---
 
 ## Disclaimer
 
 SyncLens is an independent, community-developed project. It is **not affiliated with, endorsed by, or sponsored by Resilio, Inc.** "Resilio" and "Resilio Sync" are trademarks of Resilio, Inc. All rights reserved by their respective owners.
-

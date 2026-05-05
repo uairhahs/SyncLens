@@ -1,12 +1,10 @@
 #pragma once
 
 #include <QApplication>
-#include "health/HealthState.h"
+#include <QList>
+#include "settings/SettingsManager.h"
 
-class SettingsManager;
-class MainWindow;
-class TrayController;
-class HealthMonitor;
+class SyncInstance;
 
 class Application : public QApplication
 {
@@ -18,14 +16,11 @@ public:
     int run();
 
 private:
-    void onHealthStateChanged(HealthState state);
-    void onOpenInBrowserRequested();
+    void createInstances();
+    void applyInstanceChanges(const QList<InstanceConfig> &newList);
+    void onManageInstancesRequested();
 
     SettingsManager *m_settings;
-    MainWindow      *m_mainWindow;
-    TrayController  *m_tray;
-    HealthMonitor   *m_health;
-
-    HealthState m_previousHealthState;
-    bool        m_firstRun = true;
+    QList<SyncInstance *> m_instances;
+    bool m_manageDialogOpen = false;
 };

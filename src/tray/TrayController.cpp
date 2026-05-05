@@ -10,11 +10,11 @@ TrayController::TrayController(QObject *parent)
     m_tray = new QSystemTrayIcon(this);
     m_menu = new QMenu;
 
-    m_openAction        = m_menu->addAction(tr("Open SyncLens"));
+    m_openAction = m_menu->addAction(tr("Open SyncLens"));
     m_openBrowserAction = m_menu->addAction(tr("Open in Browser"));
-    m_refreshAction     = m_menu->addAction(tr("Refresh Status"));
+    m_refreshAction = m_menu->addAction(tr("Refresh Status"));
     m_menu->addSeparator();
-    m_quitAction        = m_menu->addAction(tr("Quit"));
+    m_quitAction = m_menu->addAction(tr("Quit"));
 
     m_tray->setContextMenu(m_menu);
 
@@ -40,7 +40,8 @@ void TrayController::show()
 void TrayController::updateState(HealthState state)
 {
     QString iconPath;
-    switch (state) {
+    switch (state)
+    {
     case HealthState::Running:
         iconPath = ":/icons/synclens-healthy.png";
         break;
@@ -70,16 +71,37 @@ void TrayController::onActivated(QSystemTrayIcon::ActivationReason reason)
     }
 }
 
+void TrayController::setLabel(const QString &label)
+{
+    m_label = label;
+}
+
 void TrayController::rebuildTooltip(HealthState state)
 {
-    QString tip = "SyncLens — ";
-    switch (state) {
-    case HealthState::Running:      tip += tr("Running");      break;
-    case HealthState::Starting:     tip += tr("Starting...");  break;
-    case HealthState::Stopped:      tip += tr("Stopped");      break;
-    case HealthState::Unreachable:  tip += tr("Unreachable");  break;
-    case HealthState::Error:        tip += tr("Error");        break;
-    case HealthState::Unknown:      tip += tr("Unknown");      break;
+    QString prefix = QStringLiteral("SyncLens");
+    if (!m_label.isEmpty())
+        prefix += QStringLiteral(" — ") + m_label;
+    QString tip = prefix + QStringLiteral(": ");
+    switch (state)
+    {
+    case HealthState::Running:
+        tip += tr("Running");
+        break;
+    case HealthState::Starting:
+        tip += tr("Starting...");
+        break;
+    case HealthState::Stopped:
+        tip += tr("Stopped");
+        break;
+    case HealthState::Unreachable:
+        tip += tr("Unreachable");
+        break;
+    case HealthState::Error:
+        tip += tr("Error");
+        break;
+    case HealthState::Unknown:
+        tip += tr("Unknown");
+        break;
     }
     m_tray->setToolTip(tip);
 }

@@ -6,46 +6,76 @@
 #include <QLineEdit>
 #include <QCheckBox>
 #include <QDialogButtonBox>
+#include <QFrame>
 #include <QLabel>
+#include <QMessageBox>
+#include <QUrl>
 
-SettingsDialog::SettingsDialog(SettingsManager *settings, QWidget *parent)
-    : QDialog(parent)
-    , m_settings(settings)
+static bool isValidWebUiUrl(const QString &raw)
+{
+    const QUrl u(raw);
+    return u.isValid() && (u.scheme() == QLatin1String("http") || u.scheme() == QLatin1String("https")) && !u.host().isEmpty();
+}
+
+SettingsDialog::SettingsDialog(SettingsManager *settings, InstanceConfig *config,
+                               QWidget *parent)
+    : QDialog(parent), m_settings(settings), m_config(config)
 {
     setWindowTitle(tr("SyncLens Settings"));
     setMinimumWidth(440);
 
     auto *root = new QVBoxLayout(this);
-    auto *form = new QFormLayout;
 
-    m_urlEdit = new QLineEdit(m_settings->webUiUrl(), this);
-    form->addRow(tr("WebUI URL:"), m_urlEdit);
+    // ---- Per-instance settings ----
+    auto *instanceForm = new QFormLayout;
+    m_nameEdit = new QLineEdit(m_config->name, this);
+    instanceForm->addRow(tr("Name:"), m_nameEdit);
+    m_urlEdit = new QLineEdit(m_config->url, this);
+    instanceForm->addRow(tr("WebUI URL:"), m_urlEdit);
+    root->addLayout(instanceForm);
 
+    // Divider between per-instance and global sections
+    auto *line = new QFrame(this);
+    line->setFrameShape(QFrame::HLine);
+    line->setFrameShadow(QFrame::Sunken);
+    root->addWidget(line);
+
+    // ---- Global settings ----
+    auto *globalForm = new QFormLayout;
     m_startMinimized = new QCheckBox(tr("Start minimized to tray"), this);
     m_startMinimized->setChecked(m_settings->startMinimized());
-    form->addRow(QString(), m_startMinimized);
+    globalForm->addRow(QString(), m_startMinimized);
 
     m_launchOnLogin = new QCheckBox(tr("Launch on login (XDG autostart)"), this);
     m_launchOnLogin->setChecked(m_settings->launchOnLogin());
-    form->addRow(QString(), m_launchOnLogin);
+    globalForm->addRow(QString(), m_launchOnLogin);
 
     m_notifications = new QCheckBox(tr("Enable desktop notifications"), this);
     m_notifications->setChecked(m_settings->notificationsEnabled());
-    form->addRow(QString(), m_notifications);
+    globalForm->addRow(QString(), m_notifications);
+    root->addLayout(globalForm);
+
+    root->addSpacing(8);
 
     auto *buttons = new QDialogButtonBox(
         QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     connect(buttons, &QDialogButtonBox::accepted, this, &SettingsDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
-
-    root->addLayout(form);
-    root->addSpacing(8);
     root->addWidget(buttons);
 }
 
 void SettingsDialog::accept()
 {
-    m_settings->setWebUiUrl(m_urlEdit->text().trimmed());
+    const QString url = m_urlEdit->text().trimmed();
+    if (!isValidWebUiUrl(url))
+    {
+        QMessageBox::warning(this, tr("Invalid URL"),
+                             tr("Please enter a valid http:// or https:// URL.\n"
+                                "Example: http://127.0.0.1:8888/gui/"));
+        return; // keep dialog open
+    }
+    m_config->name = m_nameEdit->text().trimmed();
+    m_config->url = url;
     m_settings->setStartMinimized(m_startMinimized->isChecked());
     m_settings->setLaunchOnLogin(m_launchOnLogin->isChecked());
     m_settings->setNotificationsEnabled(m_notifications->isChecked());

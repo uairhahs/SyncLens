@@ -20,7 +20,9 @@ class WebViewHost : public QWidget
 {
     Q_OBJECT
 public:
-    explicit WebViewHost(QWidget *parent = nullptr);
+    // profileId is used as the QWebEngineProfile storage name, giving each
+    // Sync instance its own isolated cookie jar and session data.
+    explicit WebViewHost(const QString &profileId, QWidget *parent = nullptr);
 
     void loadUrl(const QString &url);
     void setUrl(const QString &url);
@@ -36,14 +38,14 @@ private:
     // Profile must outlive the page and view — declared first so it is
     // destroyed last (Qt child destruction is reverse-construction order).
     QWebEngineProfile *m_profile;
-    QWebEnginePage    *m_page;
+    QWebEnginePage *m_page;
 
     QStackedWidget *m_stack;
     QWebEngineView *m_webView;
-    QWidget        *m_offlinePage;
-    QLabel         *m_offlineLabel;
-    QPushButton    *m_openBrowserButton;
-    QString         m_currentUrl;
+    QWidget *m_offlinePage;
+    QLabel *m_offlineLabel;
+    QPushButton *m_openBrowserButton;
+    QString m_currentUrl;
 
     // Tracks how many times authenticationRequired has fired for the current
     // page load. 0 = first attempt (try stored creds silently);

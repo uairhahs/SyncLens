@@ -2,20 +2,26 @@
 
 #include <QMainWindow>
 #include "health/HealthState.h"
+#include "settings/SettingsManager.h"
 
 class WebViewHost;
-class SettingsManager;
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit MainWindow(SettingsManager *settings, QWidget *parent = nullptr);
+    MainWindow(SettingsManager *settings, const InstanceConfig &config,
+               QWidget *parent = nullptr);
 
     void applyHealthState(HealthState state);
+    void applyConfig(const InstanceConfig &cfg);
 
 public slots:
     void openInBrowser();
+
+signals:
+    void instanceConfigChanged(const InstanceConfig &config);
+    void manageInstancesRequested();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -24,9 +30,11 @@ protected:
 
 private:
     void setupMenuBar();
+    void updateWindowTitle();
 
-    WebViewHost     *m_webViewHost;
+    WebViewHost *m_webViewHost;
     SettingsManager *m_settings;
-    HealthState      m_lastState = HealthState::Unknown;
-    bool             m_webViewLoaded = false;
+    InstanceConfig m_config;
+    HealthState m_lastState = HealthState::Unknown;
+    bool m_webViewLoaded = false;
 };

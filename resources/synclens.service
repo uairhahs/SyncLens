@@ -1,0 +1,15 @@
+[Unit]
+Description=SyncLens — Qt wrapper for the Resilio Sync WebUI
+Documentation=https://github.com/your-username/sync-lens
+# Wait for the graphical session so the tray and WebEngine are available.
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/synclens
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target

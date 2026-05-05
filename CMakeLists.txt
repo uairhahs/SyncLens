@@ -22,6 +22,8 @@ qt_add_executable(synclens
     src/app/Application.cpp
     src/app/MainWindow.h
     src/app/MainWindow.cpp
+    src/app/SyncInstance.h
+    src/app/SyncInstance.cpp
 
     src/webview/WebViewHost.h
     src/webview/WebViewHost.cpp
@@ -41,6 +43,8 @@ qt_add_executable(synclens
     src/ui/AboutDialog.cpp
     src/ui/SettingsDialog.h
     src/ui/SettingsDialog.cpp
+    src/ui/InstanceManagerDialog.h
+    src/ui/InstanceManagerDialog.cpp
 
     resources/resources.qrc
 )
@@ -72,3 +76,7 @@ target_include_directories(synclens PRIVATE src)
 
 install(TARGETS synclens DESTINATION bin)
 install(FILES resources/synclens.desktop DESTINATION share/applications)
+install(FILES resources/icons/synclens.png DESTINATION share/icons/hicolor/512x512/apps RENAME synclens.png)
+# systemd user service — installed to the per-user unit directory so users
+# can opt in with: systemctl --user enable synclens.service
+install(FILES resources/synclens.service DESTINATION lib/systemd/user)

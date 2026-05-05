@@ -1,77 +1,91 @@
 #include "Application.h"
-#include "MainWindow.h"
+#include "SyncInstance.h"
 #include "settings/SettingsManager.h"
-#include "tray/TrayController.h"
-#include "health/HealthMonitor.h"
+#include "ui/InstanceManagerDialog.h"
 
-#include <QSystemTrayIcon>
+#include <QIcon>
+#include <QMap>
 
 Application::Application(int &argc, char **argv)
     : QApplication(argc, argv)
-    , m_previousHealthState(HealthState::Unknown)
 {
     setApplicationName("SyncLens");
     setOrganizationName("SyncLens");
     setQuitOnLastWindowClosed(false);
+    setWindowIcon(QIcon(":/icons/synclens.png"));
 
-    m_settings   = new SettingsManager(this);
-    m_mainWindow = new MainWindow(m_settings);
-    m_tray       = new TrayController(this);
-    m_health     = new HealthMonitor(this);
-
-    m_health->setUrl(m_settings->webUiUrl());
-    m_health->setIntervalMs(m_settings->healthCheckIntervalMs());
-
-    // Health -> Tray + Window
-    connect(m_health, &HealthMonitor::stateChanged,
-            this, [this](HealthState state) { onHealthStateChanged(state); });
-
-    // Tray actions
-    connect(m_tray, &TrayController::openWindowRequested, this, [this]() {
-        m_mainWindow->show();
-        m_mainWindow->raise();
-        m_mainWindow->activateWindow();
-    });
-    connect(m_tray, &TrayController::openInBrowserRequested,
-            this, &Application::onOpenInBrowserRequested);
-    connect(m_tray, &TrayController::refreshRequested, this, [this]() {
-        // Force a fresh URL in case settings changed
-        m_health->setUrl(m_settings->webUiUrl());
-    });
-    connect(m_tray, &TrayController::quitRequested,
-            this, &QApplication::quit);
+    m_settings = new SettingsManager(this);
 }
 
-Application::~Application() = default;
+Application::~Application()
+{
+    qDeleteAll(m_instances);
+}
 
 int Application::run()
 {
-    m_tray->show();
-
-    if (!m_settings->startMinimized()) {
-        m_mainWindow->show();
-    }
-
-    m_health->start();
+    createInstances();
+    const bool minimized = m_settings->startMinimized();
+    for (SyncInstance *inst : std::as_const(m_instances))
+        inst->start(minimized);
     return exec();
 }
 
-void Application::onHealthStateChanged(HealthState state)
+void Application::createInstances()
 {
-    bool wasHealthy = (m_previousHealthState == HealthState::Running);
-    bool isHealthy  = (state == HealthState::Running);
-
-    m_tray->updateState(state);
-    m_mainWindow->applyHealthState(state);
-
-    m_previousHealthState = state;
-    m_firstRun = false;
-
-    Q_UNUSED(wasHealthy)
-    Q_UNUSED(isHealthy)
+    const QList<InstanceConfig> configs = m_settings->instances();
+    for (const InstanceConfig &cfg : configs)
+    {
+        auto *inst = new SyncInstance(cfg, m_settings);
+        connect(inst, &SyncInstance::manageInstancesRequested,
+                this, &Application::onManageInstancesRequested);
+        m_instances.append(inst);
+    }
 }
 
-void Application::onOpenInBrowserRequested()
+void Application::onManageInstancesRequested()
 {
-    m_mainWindow->openInBrowser();
+    // Guard: only one dialog at a time. All MainWindows share the same slot,
+    // so two windows could otherwise open conflicting dialogs simultaneously.
+    if (m_manageDialogOpen)
+        return;
+    m_manageDialogOpen = true;
+    InstanceManagerDialog dlg(m_settings);
+    if (dlg.exec() == QDialog::Accepted)
+        applyInstanceChanges(dlg.result());
+    m_manageDialogOpen = false;
+}
+
+void Application::applyInstanceChanges(const QList<InstanceConfig> &newList)
+{
+    m_settings->setInstances(newList);
+
+    // Build a lookup of current instances by id.
+    QMap<QString, SyncInstance *> existing;
+    for (SyncInstance *inst : std::as_const(m_instances))
+        existing.insert(inst->config().id, inst);
+
+    QList<SyncInstance *> updated;
+    for (const InstanceConfig &cfg : newList)
+    {
+        if (existing.contains(cfg.id))
+        {
+            SyncInstance *inst = existing.take(cfg.id);
+            inst->applyConfig(cfg);
+            updated.append(inst);
+        }
+        else
+        {
+            auto *inst = new SyncInstance(cfg, m_settings);
+            connect(inst, &SyncInstance::manageInstancesRequested,
+                    this, &Application::onManageInstancesRequested);
+            inst->start(false);
+            updated.append(inst);
+        }
+    }
+
+    // Destroy instances that were removed.
+    qDeleteAll(existing);
+
+    m_instances = updated;
 }

@@ -17,33 +17,23 @@
 #include <QFrame>
 #include <QCheckBox>
 
-WebViewHost::WebViewHost(QWidget *parent)
+WebViewHost::WebViewHost(const QString &profileId, QWidget *parent)
     : QWidget(parent)
 {
-    // Persistent profile: stores cookies in
-    // ~/.local/share/<OrgName>/<AppName>/QtWebEngine/synclens/
-    // Cookies survive process exit and are reloaded on next launch — the user
-    // is not prompted to sign in again as long as the Resilio session cookie
-    // is still valid.
-    m_profile = new QWebEngineProfile("synclens", this);
-    m_profile->setPersistentCookiesPolicy(
-        QWebEngineProfile::ForcePersistentCookies);
+    // ── Destruction-order guarantee ──────────────────────────────────────────
+    // Qt deletes children in FIFO order (first added → first deleted).
+    // Required order for QtWebEngine: view first, page second, profile last.
+    // We achieve this by adding m_stack (parent of the view) to the children
+    // list BEFORE m_profile (parent of the page).  Profile is created last so
+    // it sits later in the children list and is therefore deleted last.
+    // ─────────────────────────────────────────────────────────────────────────
 
-    // Page is parented to the profile so the profile outlives the page.
-    // The view uses setPage() so it does NOT take ownership.
-    // Destruction order: view destroyed first (child of m_stack/this),
-    // then profile destroyed (direct child of this, created before m_stack),
-    // which destroys the page as its own child. This is the correct order.
-    m_page = new QWebEnginePage(m_profile, m_profile);
+    // 1. Stack and view — must be destroyed FIRST.
+    m_stack = new QStackedWidget(this); // children[0]
 
-    m_stack = new QStackedWidget(this);
-
-    // --- Embedded web view ---
     m_webView = new QWebEngineView(m_stack);
-    m_webView->setPage(m_page); // view does not own the page
-    m_stack->addWidget(m_webView);
 
-    // --- Offline / error page ---
+    // Offline / error page (also a stack child — destroyed together with m_stack).
     m_offlinePage = new QWidget(m_stack);
     auto *offlineLayout = new QVBoxLayout(m_offlinePage);
     offlineLayout->setAlignment(Qt::AlignCenter);
@@ -53,14 +43,28 @@ WebViewHost::WebViewHost(QWidget *parent)
     m_offlineLabel->setWordWrap(true);
 
     m_openBrowserButton = new QPushButton(tr("Open in Browser"), m_offlinePage);
-    connect(m_openBrowserButton, &QPushButton::clicked, this, [this]() {
-        emit openInBrowserRequested(m_currentUrl);
-    });
+    connect(m_openBrowserButton, &QPushButton::clicked, this, [this]()
+            { emit openInBrowserRequested(m_currentUrl); });
 
     offlineLayout->addWidget(m_offlineLabel);
     offlineLayout->addSpacing(12);
     offlineLayout->addWidget(m_openBrowserButton);
+
+    m_stack->addWidget(m_webView);
     m_stack->addWidget(m_offlinePage);
+
+    // 2. Profile and page — must be destroyed LAST.
+    // Profile stores cookies in:
+    //   ~/.local/share/<OrgName>/<AppName>/QtWebEngine/<profileId>/
+    // Each Sync instance gets its own profile, so sessions are fully isolated.
+    m_profile = new QWebEngineProfile(profileId, this); // children[1]
+    m_profile->setPersistentCookiesPolicy(
+        QWebEngineProfile::ForcePersistentCookies);
+
+    // Page is parented to the profile; the view uses setPage() and does NOT
+    // take ownership.  When profile is eventually destroyed it deletes the page.
+    m_page = new QWebEnginePage(m_profile, m_profile);
+    m_webView->setPage(m_page);
 
     connect(m_page, &QWebEnginePage::authenticationRequired,
             this, &WebViewHost::onAuthRequired);
@@ -98,10 +102,12 @@ void WebViewHost::onAuthRequired(const QUrl &requestUrl, QAuthenticator *authent
     const QString urlKey = requestUrl.toString(QUrl::RemoveQuery | QUrl::RemoveFragment);
 
     // First attempt: try stored credentials silently without showing a dialog.
-    if (m_authAttempt == 0) {
+    if (m_authAttempt == 0)
+    {
         ++m_authAttempt;
         Credential stored = CredentialStore::load(urlKey);
-        if (stored.valid) {
+        if (stored.valid)
+        {
             authenticator->setUser(stored.username);
             authenticator->setPassword(stored.password);
             return; // Qt will retry the request with these credentials.
@@ -163,7 +169,8 @@ void WebViewHost::onAuthRequired(const QUrl &requestUrl, QAuthenticator *authent
 
     // Only show "Remember" checkbox when a secret backend is available.
     QCheckBox *rememberCheck = nullptr;
-    if (CredentialStore::backendAvailable()) {
+    if (CredentialStore::backendAvailable())
+    {
         rememberCheck = new QCheckBox(tr("Remember password"), body);
         rememberCheck->setChecked(true);
     }
@@ -189,7 +196,8 @@ void WebViewHost::onAuthRequired(const QUrl &requestUrl, QAuthenticator *authent
 
     (hint.username.isEmpty() ? userEdit : passEdit)->setFocus();
 
-    if (dlg.exec() == QDialog::Accepted) {
+    if (dlg.exec() == QDialog::Accepted)
+    {
         const QString user = userEdit->text();
         const QString pass = passEdit->text();
         authenticator->setUser(user);
