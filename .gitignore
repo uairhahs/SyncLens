@@ -8,3 +8,8 @@ Makefile
 # local workspace
 .local
 .codebase-memory
+
+# nix build output
+result
+result-*
+
