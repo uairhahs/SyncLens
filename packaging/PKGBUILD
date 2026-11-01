@@ -1,6 +1,6 @@
 # Maintainer: uairhahs <https://github.com/uairhahs>
 pkgname=synclens
-pkgver=0.1.0
+pkgver=0.1.1
 pkgrel=1
 pkgdesc="Unofficial Qt wrapper for the Resilio Sync WebUI"
 arch=('x86_64')

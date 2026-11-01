@@ -77,12 +77,14 @@ cmake --build build --parallel
 
 ## Tray icon states
 
-| Colour | Meaning                                            |
-| ------ | -------------------------------------------------- |
-| Green  | Resilio Sync is running and the WebUI is reachable |
-| Amber  | Connecting or status unknown                       |
-| Grey   | Daemon is stopped                                  |
-| Red    | WebUI is not responding or an error occurred       |
+| Colour | Centre | Meaning                                            |
+| ------ | ------ | -------------------------------------------------- |
+| Green  | Dot    | Resilio Sync is running and the WebUI is reachable |
+| Amber  | Ring   | Connecting or status unknown                       |
+| Grey   | Pause  | Daemon is stopped                                  |
+| Red    | Cross  | WebUI is not responding or an error occurred       |
+
+Icon sources are in `resources/icons/src/`; run `resources/icons/generate_icons.py` to regenerate them and the PNGs.
 
 ---
 
