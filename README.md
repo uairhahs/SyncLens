@@ -14,24 +14,65 @@ SyncLens gives Resilio Sync a proper Linux desktop home — system tray, a dedic
 
 ---
 
-## Building from source
+## Installation
+
+### From source
 
 ```bash
 # 1. Clone
-git clone https://github.com/your-username/sync-lens.git
-cd sync-lens
+git clone https://github.com/uairhahs/SyncLens.git
+cd SyncLens
 
 # 2. Configure
-cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
 
 # 3. Build
 cmake --build build --parallel
 
-# 4. Run
+# 4. Try it without installing (optional)
 ./build/synclens
+
+# 5. Install
+sudo cmake --install build
 ```
 
+This installs the `synclens` binary, desktop entry, app icon and systemd user service. Omit `-DCMAKE_INSTALL_PREFIX=/usr` to install under `/usr/local` instead. Files installed this way are not tracked by your package manager.
+
 **Optional dependency:** install `libsecret` (`libsecret-1-dev` on Debian/Ubuntu, `libsecret` on Arch) before configuring to enable secure password storage via GNOME Keyring or KWallet. Without it, only your username is remembered between sessions.
+
+### Arch Linux
+
+Build and install a package from the included `PKGBUILD`, run from a clone of this repository:
+
+```bash
+cd packaging
+makepkg -si
+```
+
+### Nix
+
+Run it directly:
+
+```bash
+nix run github:uairhahs/SyncLens/v0.1.1
+```
+
+On NixOS, add it as a flake input and include the package in your configuration:
+
+```nix
+# flake.nix
+inputs.synclens = {
+  url = "github:uairhahs/SyncLens/v0.1.1";
+  inputs.nixpkgs.follows = "nixpkgs";
+};
+
+# configuration module (with `inputs` passed via specialArgs)
+environment.systemPackages = [
+  inputs.synclens.packages.${pkgs.stdenv.hostPlatform.system}.synclens
+];
+```
+
+The `nix` command needs the `nix-command` and `flakes` experimental features enabled.
 
 ---
 
