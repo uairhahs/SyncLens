@@ -27,11 +27,15 @@ signals:
     void refreshRequested();
     void quitRequested();
 
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
+
 private slots:
     void onActivated(QSystemTrayIcon::ActivationReason reason);
 
 private:
     void rebuildTooltip(HealthState state);
+    void applyIcon();
 
     QSystemTrayIcon *m_tray;
     QMenu *m_menu;
@@ -40,4 +44,5 @@ private:
     QAction *m_refreshAction;
     QAction *m_quitAction;
     QString m_label;
+    HealthState m_state = HealthState::Unknown;
 };

@@ -7,12 +7,13 @@
   wrapQtAppsHook,
   qtbase,
   qtwebengine,
+  qtsvg,
   libsecret,
 }:
 
 stdenv.mkDerivation {
   pname = "synclens";
-  version = "0.1.1";
+  version = "0.1.2";
 
   src = lib.cleanSource ../.;
 
@@ -26,6 +27,7 @@ stdenv.mkDerivation {
   buildInputs = [
     qtbase
     qtwebengine
+    qtsvg
     libsecret
   ];
 

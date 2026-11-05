@@ -12,7 +12,8 @@ Application::Application(int &argc, char **argv)
     setApplicationName("SyncLens");
     setOrganizationName("SyncLens");
     setQuitOnLastWindowClosed(false);
-    setWindowIcon(QIcon(":/icons/synclens.png"));
+    // Use the theme's icon when present so icon themes can restyle it.
+    setWindowIcon(QIcon::fromTheme("synclens", QIcon(":/icons/synclens.svg")));
 
     m_settings = new SettingsManager(this);
 }

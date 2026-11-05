@@ -1,18 +1,23 @@
 #!/usr/bin/env python3
-"""Regenerates the SyncLens icon set: SVG sources in src/ and the PNGs Qt loads.
+"""Regenerates the SyncLens icons. Each icon is a single SVG in this directory,
+used both when installed and when bundled in the binary.
 
-The mark is a lens whose rim is formed by two sync arrows. Tray icons sit on a
-dark disc so they read on light and dark panels, and every state differs in
-both colour and centre shape so it doesn't rely on colour vision alone.
+The mark is a lens whose rim is formed by two sync arrows. The app icon is a
+flat circle, matching circular icon themes such as Tela-circle.
 
-Requires rsvg-convert. Usage: python3 generate_icons.py
+Tray icons (synclens-tray-<state>.svg) use KDE's current-color-scheme
+stylesheet for the arrows: when installed, Plasma paints them in the panel's
+text colour. When they aren't installed, TrayController renders the bundled
+copy with the arrows in the palette's text colour. Only the centre is coloured,
+with fixed vivid colours (healthy matches the CachyOS mint), and every state
+differs in both colour and shape so it doesn't rely on colour vision alone.
+
+Usage: python3 generate_icons.py
 """
 import math
-import subprocess
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-SRC = HERE / "src"
 NAVY = "#0B1B3A"
 C = 128  # all artwork uses a 256x256 viewBox
 
@@ -54,26 +59,44 @@ def svg(body, defs=""):
 
 
 def app_icon():
-    defs = (
-        '<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">'
-        '<stop offset="0" stop-color="#1C8BFF"/><stop offset="1" stop-color="#0A3FC4"/>'
-        "</linearGradient>"
-        f'<clipPath id="glass"><circle cx="{C}" cy="{C}" r="46"/></clipPath>'
-    )
+    # Flat disc with a white glyph, sized like Tela-circle (r=27 of 64).
+    # Glass glare: a soft tint over the top-left half, a brighter band along its
+    # outer edge, and a faint rim light on the opposite edge.
+    defs = f'<clipPath id="glass"><circle cx="{C}" cy="{C}" r="24"/></clipPath>'
     body = (
-        '<rect x="8" y="8" width="240" height="240" rx="54" fill="url(#bg)"/>'
-        + sync_arcs(86, 18, 21, "#FFFFFF")
-        + f'<circle cx="{C}" cy="{C}" r="46" fill="{NAVY}"/>'
-        + '<path d="M78 150L150 78" stroke="#6FE7FF" stroke-width="20" clip-path="url(#glass)"/>'
+        f'<circle cx="{C}" cy="{C}" r="108" fill="#1C7CF0"/>'
+        + sync_arcs(70, 14, 17, "#FFFFFF")
+        + f'<circle cx="{C}" cy="{C}" r="34" fill="#FFFFFF"/>'
+        + f'<circle cx="{C}" cy="{C}" r="24" fill="{NAVY}"/>'
+        + '<path d="M0 256L256 0L0 0Z" fill="#6FE7FF" fill-opacity="0.45" clip-path="url(#glass)"/>'
+        + '<path d="M0 236L236 0L0 0Z" fill="#FFFFFF" fill-opacity="0.2" clip-path="url(#glass)"/>'
+        + '<path d="M146 134A19 19 0 0 1 134 146" fill="none" stroke="#6FE7FF" '
+        'stroke-opacity="0.55" stroke-width="4" stroke-linecap="round"/>'
     )
     return svg(body, defs)
 
 
-def tray_icon(colour, centre):
+# Default arrow colour, used when the icon isn't drawn by Plasma. TrayController
+# replaces TEXT with the palette's text colour, so keep it unique.
+TEXT = "#DFDFDF"
+SCHEME = (
+    '<style id="current-color-scheme" type="text/css">'
+    f".ColorScheme-Text{{color:{TEXT}}}"
+    "</style>"
+)
+
+
+def themed(markup, cls):
+    """Makes every fill/stroke in markup follow a ColorScheme class."""
+    return f'<g class="{cls}">' + markup.replace(
+        "#FFFFFF", "currentColor"
+    ) + "</g>"
+
+
+def themed_tray(centre_markup):
     return svg(
-        f'<circle cx="{C}" cy="{C}" r="126" fill="{NAVY}"/>'
-        + sync_arcs(93, 24, 28, colour)
-        + centre
+        themed(sync_arcs(93, 24, 28, "#FFFFFF"), "ColorScheme-Text") + centre_markup,
+        SCHEME,
     )
 
 
@@ -99,23 +122,17 @@ def cross(colour):
 
 
 ICONS = {
-    "synclens": (app_icon(), 512),
-    "synclens-healthy": (tray_icon("#34D399", dot("#34D399")), 256),
-    "synclens-connecting": (tray_icon("#FBBF24", ring("#FBBF24")), 256),
-    "synclens-stopped": (tray_icon("#A7B0BF", pause("#A7B0BF")), 256),
-    "synclens-error": (tray_icon("#F87171", cross("#F87171")), 256),
+    "synclens": app_icon(),
+    "synclens-tray-healthy": themed_tray(dot("#02FDC2")),
+    "synclens-tray-connecting": themed_tray(ring("#FBBF24")),
+    "synclens-tray-stopped": themed_tray(pause("#60A5FA")),
+    "synclens-tray-error": themed_tray(cross("#F87171")),
 }
 
 
 def main():
-    SRC.mkdir(exist_ok=True)
-    for name, (content, size) in ICONS.items():
-        source = SRC / f"{name}.svg"
-        source.write_text(content)
-        subprocess.run(
-            ["rsvg-convert", "-w", str(size), "-h", str(size), "-o", str(HERE / f"{name}.png"), str(source)],
-            check=True,
-        )
+    for name, content in ICONS.items():
+        (HERE / f"{name}.svg").write_text(content)
 
 
 if __name__ == "__main__":

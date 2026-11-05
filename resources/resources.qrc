@@ -1,10 +1,10 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
     <qresource prefix="/">
-        <file>icons/synclens.png</file>
-        <file>icons/synclens-healthy.png</file>
-        <file>icons/synclens-stopped.png</file>
-        <file>icons/synclens-error.png</file>
-        <file>icons/synclens-connecting.png</file>
+        <file>icons/synclens.svg</file>
+        <file>icons/synclens-tray-healthy.svg</file>
+        <file>icons/synclens-tray-connecting.svg</file>
+        <file>icons/synclens-tray-stopped.svg</file>
+        <file>icons/synclens-tray-error.svg</file>
     </qresource>
 </RCC>

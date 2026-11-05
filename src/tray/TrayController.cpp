@@ -3,6 +3,40 @@
 #include <QMenu>
 #include <QAction>
 #include <QIcon>
+#include <QApplication>
+#include <QEvent>
+#include <QFile>
+#include <QPainter>
+#include <QPalette>
+#include <QPixmap>
+#include <QSvgRenderer>
+
+namespace
+{
+// Fallback for when the themed icon isn't installed: renders the bundled copy
+// with the arrows in the palette's text colour. Keep in sync with TEXT in
+// resources/icons/generate_icons.py.
+QIcon bundledTrayIcon(const QString &name)
+{
+    QFile file(":/icons/" + name + ".svg");
+    if (!file.open(QIODevice::ReadOnly))
+        return {};
+    const QByteArray text = QApplication::palette().color(QPalette::WindowText).name().toLatin1();
+    QSvgRenderer renderer(file.readAll().replace("#DFDFDF", text));
+
+    QIcon icon;
+    for (int size : {16, 22, 24, 32, 48, 64, 128, 256})
+    {
+        QPixmap pixmap(size, size);
+        pixmap.fill(Qt::transparent);
+        QPainter painter(&pixmap);
+        renderer.render(&painter);
+        painter.end();
+        icon.addPixmap(pixmap);
+    }
+    return icon;
+}
+} // namespace
 
 TrayController::TrayController(QObject *parent)
     : QObject(parent)
@@ -29,7 +63,16 @@ TrayController::TrayController(QObject *parent)
     connect(m_tray, &QSystemTrayIcon::activated,
             this, &TrayController::onActivated);
 
+    qApp->installEventFilter(this);
     updateState(HealthState::Unknown);
+}
+
+bool TrayController::eventFilter(QObject *watched, QEvent *event)
+{
+    // Re-tint when the colour scheme changes (e.g. switching light/dark).
+    if (watched == qApp && event->type() == QEvent::ApplicationPaletteChange)
+        applyIcon();
+    return QObject::eventFilter(watched, event);
 }
 
 void TrayController::show()
@@ -39,27 +82,39 @@ void TrayController::show()
 
 void TrayController::updateState(HealthState state)
 {
-    QString iconPath;
-    switch (state)
+    m_state = state;
+    applyIcon();
+    rebuildTooltip(state);
+}
+
+void TrayController::applyIcon()
+{
+    QString name;
+    switch (m_state)
     {
     case HealthState::Running:
-        iconPath = ":/icons/synclens-healthy.png";
+        name = "healthy";
         break;
     case HealthState::Starting:
     case HealthState::Unknown:
-        iconPath = ":/icons/synclens-connecting.png";
+        name = "connecting";
         break;
     case HealthState::Stopped:
-        iconPath = ":/icons/synclens-stopped.png";
+        name = "stopped";
         break;
     case HealthState::Unreachable:
     case HealthState::Error:
-        iconPath = ":/icons/synclens-error.png";
+        name = "error";
         break;
     }
 
-    m_tray->setIcon(QIcon(iconPath));
-    rebuildTooltip(state);
+    // Prefer the installed themed icon: the tray host loads it by name and
+    // paints it in the panel's own colours.
+    const QString themeName = "synclens-tray-" + name;
+    if (QIcon::hasThemeIcon(themeName))
+        m_tray->setIcon(QIcon::fromTheme(themeName));
+    else
+        m_tray->setIcon(bundledTrayIcon(themeName));
 }
 
 void TrayController::onActivated(QSystemTrayIcon::ActivationReason reason)

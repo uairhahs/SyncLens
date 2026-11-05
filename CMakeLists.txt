@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(SyncLens VERSION 0.1.1 LANGUAGES CXX)
+project(SyncLens VERSION 0.1.2 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -13,6 +13,7 @@ find_package(Qt6 6.4 REQUIRED COMPONENTS
     Widgets
     WebEngineWidgets
     Network
+    Svg
 )
 
 qt_add_executable(synclens
@@ -55,6 +56,7 @@ target_link_libraries(synclens PRIVATE
     Qt6::Widgets
     Qt6::WebEngineWidgets
     Qt6::Network
+    Qt6::Svg
 )
 
 # Optional: libsecret for secure credential persistence via the
@@ -76,7 +78,14 @@ target_include_directories(synclens PRIVATE src)
 
 install(TARGETS synclens DESTINATION bin)
 install(FILES resources/synclens.desktop DESTINATION share/applications)
-install(FILES resources/icons/synclens.png DESTINATION share/icons/hicolor/512x512/apps RENAME synclens.png)
+install(FILES resources/icons/synclens.svg DESTINATION share/icons/hicolor/scalable/apps)
+# Tray icons use KDE's current-color-scheme stylesheet so the panel recolours them.
+install(FILES
+    resources/icons/synclens-tray-healthy.svg
+    resources/icons/synclens-tray-connecting.svg
+    resources/icons/synclens-tray-stopped.svg
+    resources/icons/synclens-tray-error.svg
+    DESTINATION share/icons/hicolor/scalable/status)
 # systemd user service — installed to the per-user unit directory so users
 # can opt in with: systemctl --user enable synclens.service
 install(FILES resources/synclens.service DESTINATION lib/systemd/user)

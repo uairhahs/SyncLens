@@ -20,7 +20,7 @@ AboutDialog::AboutDialog(QWidget *parent)
 
     auto *title = new QLabel(
         "<b style='font-size:16px;'>SyncLens</b>"
-        "&nbsp;<span style='color:#888; font-size:13px;'>0.1.1</span>",
+        "&nbsp;<span style='color:#888; font-size:13px;'>0.1.2</span>",
         this);
     title->setTextFormat(Qt::RichText);
     title->setAlignment(Qt::AlignCenter);

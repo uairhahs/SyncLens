@@ -54,7 +54,7 @@ makepkg -si
 Run it directly:
 
 ```bash
-nix run github:uairhahs/SyncLens/v0.1.1
+nix run github:uairhahs/SyncLens/v0.1.2
 ```
 
 On NixOS, add it as a flake input and include the package in your configuration:
@@ -62,7 +62,7 @@ On NixOS, add it as a flake input and include the package in your configuration:
 ```nix
 # flake.nix
 inputs.synclens = {
-  url = "github:uairhahs/SyncLens/v0.1.1";
+  url = "github:uairhahs/SyncLens/v0.1.2";
   inputs.nixpkgs.follows = "nixpkgs";
 };
 
@@ -125,7 +125,7 @@ The `nix` command needs the `nix-command` and `flakes` experimental features ena
 | Grey   | Pause  | Daemon is stopped                                  |
 | Red    | Cross  | WebUI is not responding or an error occurred       |
 
-Icon sources are in `resources/icons/src/`; run `resources/icons/generate_icons.py` to regenerate them and the PNGs.
+Icons are SVGs in `resources/icons/`; run `resources/icons/generate_icons.py` to regenerate them.
 
 ---
 
