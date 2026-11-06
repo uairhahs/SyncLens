@@ -1,0 +1,16 @@
+{
+  "name": "Rosé Pine",
+  "appearance": "dark",
+  "primary": "#c4a7e7",
+  "greys": [
+    "#191724",
+    "#1f1d2e",
+    "#26233a",
+    "#403d52",
+    "#524f67",
+    "#6e6a86",
+    "#908caa",
+    "#e0def4"
+  ],
+  "accents": ["#9ccfd8", "#eb6f92", "#31748f", "#f6c177", "#ebbcba", "#c4a7e7"]
+}

@@ -30,6 +30,7 @@ public:
 
   void showWindow();
   void reconnect();
+  void setThemeScript(const QString &source);
   void notify(const QString &title, const QString &message, const QString &url);
 
 signals:

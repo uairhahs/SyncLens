@@ -8,6 +8,7 @@
 
 class SyncInstance;
 class UpdateChecker;
+class ThemeManager;
 
 class Application : public QApplication
 {
@@ -24,6 +25,8 @@ private:
     void applyInstanceChanges(const QList<InstanceConfig> &newList);
     void onManageInstancesRequested();
 
+    void applyTheme(bool force = false);
+
     void scheduleUpdateCheck();
     void onCheckForUpdatesRequested(QWidget *parent);
     void onUpdateAvailable(const QString &version, const QString &url);
@@ -33,6 +36,9 @@ private:
     SettingsManager *m_settings;
     QList<SyncInstance *> m_instances;
     bool m_manageDialogOpen = false;
+
+    ThemeManager *m_themes;
+    QString m_themeScript; // last script sent to the instances
 
     UpdateChecker *m_updateChecker;
     QTimer m_updateTimer;

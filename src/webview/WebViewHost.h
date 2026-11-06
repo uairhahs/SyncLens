@@ -32,6 +32,10 @@ public:
     // Replace the page with a fresh one (new renderer process) and reload.
     void reconnect();
 
+    // Script injected into every load of this view's profile, and run once on
+    // the current page so changes apply without a reload.
+    void setThemeScript(const QString &source);
+
 signals:
     void openInBrowserRequested(const QString &url);
 

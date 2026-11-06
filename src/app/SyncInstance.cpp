@@ -78,6 +78,11 @@ void SyncInstance::showWindow()
   m_window->activateWindow();
 }
 
+void SyncInstance::setThemeScript(const QString &source)
+{
+  m_window->setThemeScript(source);
+}
+
 void SyncInstance::reconnect()
 {
   m_window->reconnect();

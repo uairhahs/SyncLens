@@ -127,6 +127,19 @@ void SettingsManager::setHealthCheckIntervalMs(int ms)
     m_settings.setValue("health/intervalMs", ms);
 }
 
+QString SettingsManager::theme() const
+{
+    return m_settings.value("webui/theme").toString();
+}
+
+void SettingsManager::setTheme(const QString &id)
+{
+    if (id == theme())
+        return;
+    m_settings.setValue("webui/theme", id);
+    emit themeChanged();
+}
+
 bool SettingsManager::checkForUpdates() const
 {
     return m_settings.value("updates/check", true).toBool();

@@ -1,0 +1,24 @@
+{
+  "name": "Nord",
+  "appearance": "dark",
+  "greys": [
+    "#242933",
+    "#2e3440",
+    "#3b4252",
+    "#434c5e",
+    "#4c566a",
+    "#616e88",
+    "#d8dee9",
+    "#e5e9f0",
+    "#eceff4"
+  ],
+  "accents": [
+    "#88c0d0",
+    "#bf616a",
+    "#a3be8c",
+    "#ebcb8b",
+    "#d08770",
+    "#b48ead",
+    "#8fbcbb"
+  ]
+}

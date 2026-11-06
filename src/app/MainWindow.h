@@ -16,6 +16,7 @@ public:
     void applyHealthState(HealthState state);
     void applyConfig(const InstanceConfig &cfg);
     void reconnect();
+    void setThemeScript(const QString &source);
 
 public slots:
     void openInBrowser();

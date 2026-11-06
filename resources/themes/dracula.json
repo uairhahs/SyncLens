@@ -1,0 +1,24 @@
+{
+  "name": "Dracula",
+  "appearance": "dark",
+  "primary": "#bd93f9",
+  "greys": [
+    "#191a21",
+    "#21222c",
+    "#282a36",
+    "#343746",
+    "#44475a",
+    "#6272a4",
+    "#9ea8c7",
+    "#f8f8f2"
+  ],
+  "accents": [
+    "#bd93f9",
+    "#ff5555",
+    "#50fa7b",
+    "#f1fa8c",
+    "#ffb86c",
+    "#ff79c6",
+    "#8be9fd"
+  ]
+}

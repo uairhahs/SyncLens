@@ -93,6 +93,11 @@ void MainWindow::applyConfig(const InstanceConfig &cfg)
     m_lastState = HealthState::Unknown;
 }
 
+void MainWindow::setThemeScript(const QString &source)
+{
+    m_webViewHost->setThemeScript(source);
+}
+
 void MainWindow::reconnect()
 {
     m_webViewLoaded = true;

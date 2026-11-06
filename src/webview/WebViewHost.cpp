@@ -4,6 +4,8 @@
 #include <QWebEngineView>
 #include <QWebEnginePage>
 #include <QWebEngineProfile>
+#include <QWebEngineScript>
+#include <QWebEngineScriptCollection>
 #include <QMetaObject>
 #include <QStackedWidget>
 #include <QLabel>
@@ -101,6 +103,27 @@ void WebViewHost::onRenderProcessTerminated(QWebEnginePage::RenderProcessTermina
     // else (crash, kill, OOM) leaves a blank view, so start a fresh renderer.
     if (status != QWebEnginePage::NormalTerminationStatus)
         QMetaObject::invokeMethod(this, &WebViewHost::reconnect, Qt::QueuedConnection);
+}
+
+void WebViewHost::setThemeScript(const QString &source)
+{
+    static const QString kName = QStringLiteral("synclens-theme");
+    QWebEngineScriptCollection *scripts = m_profile->scripts();
+    const QList<QWebEngineScript> old = scripts->find(kName);
+    for (const QWebEngineScript &s : old)
+        scripts->remove(s);
+
+    // Isolated world: shares the DOM and stylesheets with the WebUI but not
+    // its JavaScript globals, so neither side can break the other.
+    QWebEngineScript script;
+    script.setName(kName);
+    script.setSourceCode(source);
+    script.setInjectionPoint(QWebEngineScript::DocumentCreation);
+    script.setWorldId(QWebEngineScript::ApplicationWorld);
+    script.setRunsOnSubFrames(false);
+    scripts->insert(script);
+
+    m_page->runJavaScript(source, QWebEngineScript::ApplicationWorld);
 }
 
 void WebViewHost::loadUrl(const QString &url)

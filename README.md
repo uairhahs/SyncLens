@@ -111,6 +111,7 @@ The `nix` command needs the `nix-command` and `flakes` experimental features ena
 - [x] A "Reconnect" option that starts a fresh WebUI renderer, plus automatic recovery after an outage or renderer crash
 - [x] Check for updates: a daily check against GitHub releases, and **Help > Check for Updates**
 - [x] Icon themes can restyle the app and tray icons (see [Icon themes](#icon-themes))
+- [x] WebUI colour themes, including Catppuccin, plus custom themes and a user stylesheet (see [Themes](#themes))
 
 ## Tray icon states
 
@@ -139,6 +140,47 @@ The installed tray icons use KDE's `current-color-scheme` stylesheet, so Plasma 
 
 ---
 
+## Themes
+
+**File > Settings > WebUI theme** recolours the Resilio WebUI. Bundled themes:
+
+- Catppuccin Latte, Frappé, Macchiato and Mocha
+- Dracula, Nord, Tokyo Night, Rosé Pine
+- Gruvbox Dark and Light, Solarized Dark and Light
+
+Changes apply straight away, without reloading. A theme also chooses light or dark, so it takes over from Resilio's own **Settings > General > Appearance**; pick **Resilio default** to hand that back.
+
+Resilio's stylesheets hard-code every colour, so a theme is a palette rather than CSS: SyncLens rewrites each colour in Resilio's CSS, and in its SVG icons, to the nearest theme colour. Greys are placed on the theme's grey ramp by lightness, and saturated colours take the accent with the nearest hue.
+
+### Custom themes
+
+**Open Themes Folder** in Settings opens `~/.config/SyncLens/themes/`. Each `.json` file there is a theme, listed under its `name`; one with the same file name as a bundled theme replaces it. Edits are picked up while SyncLens runs.
+
+```json
+{
+  "name": "My Theme",
+  "appearance": "dark",
+  "primary": "#cba6f7",
+  "greys": ["#11111b", "#1e1e2e", "#313244", "#585b70", "#a6adc8", "#cdd6f4"],
+  "accents": ["#89b4fa", "#f38ba8", "#a6e3a1", "#f9e2af", "#fab387", "#cba6f7"],
+  "colors": { "#e54545": "#f38ba8" }
+}
+```
+
+| Key          | Meaning                                                                                                      |
+| ------------ | ------------------------------------------------------------------------------------------------------------ |
+| `appearance` | `dark` or `light`: which of Resilio's two layouts to recolour                                                |
+| `greys`      | Two or more neutral colours, in any order. Resilio's black maps to the darkest and its white to the lightest |
+| `accents`    | One or more colours. Include a blue, red, green and yellow, since Resilio uses all four                      |
+| `primary`    | Optional highlight colour. Resilio highlights in blue; this replaces it, e.g. mauve for Catppuccin           |
+| `colors`     | Optional exact replacements for specific Resilio colours, checked first                                      |
+
+### User stylesheet
+
+`~/.config/SyncLens/user.css` is applied on top of the WebUI, with or without a theme, and reloaded when it changes. Resilio's class names are not a stable interface, so rules that target them can break when Resilio updates.
+
+---
+
 ## Settings
 
 Open **File > Settings** to configure:
@@ -148,6 +190,7 @@ Open **File > Settings** to configure:
 - **Start minimized to tray** — launch without showing the main window
 - **Launch on login** — writes `~/.config/autostart/synclens.desktop` so your desktop environment starts SyncLens automatically; uncheck to remove it
 - **Desktop notifications** — toggle wrapper notifications on or off
+- **WebUI theme** — recolour the WebUI (see [Themes](#themes))
 - **Check for updates daily** — ask GitHub once a day whether a newer release exists, and notify once per new version. **Help > Check for Updates** checks on demand
 
 **View > Reconnect** (F5), also in the tray menu, reloads the WebUI in a fresh renderer. SyncLens does this on its own when the WebUI comes back after an outage or the renderer crashes.

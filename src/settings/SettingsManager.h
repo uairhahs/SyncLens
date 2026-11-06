@@ -41,6 +41,10 @@ public:
     int healthCheckIntervalMs() const;
     void setHealthCheckIntervalMs(int ms);
 
+    // WebUI theme id (see ThemeManager); empty = Resilio's own colours.
+    QString theme() const;
+    void setTheme(const QString &id);
+
     bool checkForUpdates() const;
     void setCheckForUpdates(bool value);
     QDateTime lastUpdateCheck() const;
@@ -54,6 +58,9 @@ public:
     void setWindowSize(const QString &instanceId, const QSize &size);
     QPoint windowPos(const QString &instanceId) const;
     void setWindowPos(const QString &instanceId, const QPoint &pos);
+
+signals:
+    void themeChanged();
 
 private:
     QSettings m_settings;

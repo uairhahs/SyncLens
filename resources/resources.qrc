@@ -6,5 +6,18 @@
         <file>icons/synclens-tray-connecting.svg</file>
         <file>icons/synclens-tray-stopped.svg</file>
         <file>icons/synclens-tray-error.svg</file>
+        <file>theme/theme-engine.js</file>
+        <file>themes/catppuccin-latte.json</file>
+        <file>themes/catppuccin-frappe.json</file>
+        <file>themes/catppuccin-macchiato.json</file>
+        <file>themes/catppuccin-mocha.json</file>
+        <file>themes/dracula.json</file>
+        <file>themes/nord.json</file>
+        <file>themes/gruvbox-dark.json</file>
+        <file>themes/gruvbox-light.json</file>
+        <file>themes/solarized-dark.json</file>
+        <file>themes/solarized-light.json</file>
+        <file>themes/tokyo-night.json</file>
+        <file>themes/rose-pine.json</file>
     </qresource>
 </RCC>

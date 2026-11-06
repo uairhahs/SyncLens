@@ -1,0 +1,29 @@
+{
+  "name": "Catppuccin Mocha",
+  "appearance": "dark",
+  "primary": "#cba6f7",
+  "greys": [
+    "#11111b",
+    "#181825",
+    "#1e1e2e",
+    "#313244",
+    "#45475a",
+    "#585b70",
+    "#6c7086",
+    "#7f849c",
+    "#9399b2",
+    "#a6adc8",
+    "#bac2de",
+    "#cdd6f4"
+  ],
+  "accents": [
+    "#89b4fa",
+    "#f38ba8",
+    "#a6e3a1",
+    "#f9e2af",
+    "#fab387",
+    "#cba6f7",
+    "#94e2d5",
+    "#f5c2e7"
+  ]
+}

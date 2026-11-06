@@ -34,6 +34,9 @@ qt_add_executable(synclens
     src/health/HealthMonitor.h
     src/health/HealthMonitor.cpp
 
+    src/theme/ThemeManager.h
+    src/theme/ThemeManager.cpp
+
     src/tray/TrayController.h
     src/tray/TrayController.cpp
 

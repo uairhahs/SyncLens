@@ -6,6 +6,7 @@
 QT_BEGIN_NAMESPACE
 class QLineEdit;
 class QCheckBox;
+class QComboBox;
 QT_END_NAMESPACE
 
 class SettingsDialog : public QDialog
@@ -27,4 +28,5 @@ private:
     QCheckBox *m_launchOnLogin;
     QCheckBox *m_notifications;
     QCheckBox *m_checkForUpdates;
+    QComboBox *m_theme;
 };

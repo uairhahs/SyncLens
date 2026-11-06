@@ -1,10 +1,16 @@
 #include "SettingsDialog.h"
 #include "settings/SettingsManager.h"
+#include "theme/ThemeManager.h"
 
 #include <QVBoxLayout>
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QCheckBox>
+#include <QComboBox>
+#include <QDesktopServices>
+#include <QDir>
+#include <QHBoxLayout>
+#include <QPushButton>
 #include <QDialogButtonBox>
 #include <QFrame>
 #include <QLabel>
@@ -58,6 +64,29 @@ SettingsDialog::SettingsDialog(SettingsManager *settings, InstanceConfig *config
     m_checkForUpdates->setChecked(m_settings->checkForUpdates());
     globalForm->addRow(QString(), m_checkForUpdates);
 
+    m_theme = new QComboBox(this);
+    m_theme->addItem(tr("Resilio default"), QString());
+    const QList<ThemeInfo> themes = ThemeManager::available();
+    for (const ThemeInfo &t : themes)
+        m_theme->addItem(t.user ? tr("%1 (custom)").arg(t.name) : t.name, t.id);
+    const int current = m_theme->findData(m_settings->theme());
+    m_theme->setCurrentIndex(current < 0 ? 0 : current);
+    m_theme->setToolTip(tr("Recolours the WebUI. A theme also picks light or dark, "
+                           "overriding Resilio's Appearance setting."));
+
+    auto *themesFolder = new QPushButton(tr("Open Themes Folder"), this);
+    themesFolder->setToolTip(tr("Add your own themes here as .json files. "
+                                "user.css in the folder above is applied on top."));
+    connect(themesFolder, &QPushButton::clicked, this, []()
+            {
+        QDir().mkpath(ThemeManager::userThemesDir());
+        QDesktopServices::openUrl(QUrl::fromLocalFile(ThemeManager::userThemesDir())); });
+
+    auto *themeRow = new QHBoxLayout;
+    themeRow->addWidget(m_theme, 1);
+    themeRow->addWidget(themesFolder);
+    globalForm->addRow(tr("WebUI theme:"), themeRow);
+
     root->addLayout(globalForm);
 
     root->addSpacing(8);
@@ -85,5 +114,6 @@ void SettingsDialog::accept()
     m_settings->setLaunchOnLogin(m_launchOnLogin->isChecked());
     m_settings->setNotificationsEnabled(m_notifications->isChecked());
     m_settings->setCheckForUpdates(m_checkForUpdates->isChecked());
+    m_settings->setTheme(m_theme->currentData().toString());
     QDialog::accept();
 }

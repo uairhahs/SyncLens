@@ -1,6 +1,7 @@
 #include "Application.h"
 #include "SyncInstance.h"
 #include "UpdateChecker.h"
+#include "theme/ThemeManager.h"
 #include "settings/SettingsManager.h"
 #include "ui/InstanceManagerDialog.h"
 
@@ -30,6 +31,12 @@ Application::Application(int &argc, char **argv)
 
     m_settings = new SettingsManager(this);
 
+    m_themes = new ThemeManager(this);
+    connect(m_settings, &SettingsManager::themeChanged, this, [this]()
+            { applyTheme(); });
+    connect(m_themes, &ThemeManager::filesChanged, this, [this]()
+            { applyTheme(); });
+
     m_updateChecker = new UpdateChecker(this);
     connect(m_updateChecker, &UpdateChecker::updateAvailable,
             this, &Application::onUpdateAvailable);
@@ -56,6 +63,7 @@ Application::~Application()
 int Application::run()
 {
     createInstances();
+    applyTheme(true);
     const bool minimized = m_settings->startMinimized();
     for (SyncInstance *inst : std::as_const(m_instances))
         inst->start(minimized);
@@ -114,6 +122,8 @@ void Application::applyInstanceChanges(const QList<InstanceConfig> &newList)
         else
         {
             SyncInstance *inst = addInstance(cfg);
+            if (!m_themeScript.isEmpty())
+                inst->setThemeScript(m_themeScript);
             inst->start(false);
             updated.append(inst);
         }
@@ -123,6 +133,20 @@ void Application::applyInstanceChanges(const QList<InstanceConfig> &newList)
     qDeleteAll(existing);
 
     m_instances = updated;
+}
+
+// ---- WebUI theme ----------------------------------------------------------
+
+void Application::applyTheme(bool force)
+{
+    // File watch events also fire for unrelated writes in the config dir
+    // (settings, window geometry), so only push a script that changed.
+    const QString script = ThemeManager::script(m_settings->theme());
+    if (!force && script == m_themeScript)
+        return;
+    m_themeScript = script;
+    for (SyncInstance *inst : std::as_const(m_instances))
+        inst->setThemeScript(script);
 }
 
 // ---- Update checks --------------------------------------------------------
