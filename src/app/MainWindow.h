@@ -15,6 +15,7 @@ public:
 
     void applyHealthState(HealthState state);
     void applyConfig(const InstanceConfig &cfg);
+    void reconnect();
 
 public slots:
     void openInBrowser();
@@ -22,6 +23,8 @@ public slots:
 signals:
     void instanceConfigChanged(const InstanceConfig &config);
     void manageInstancesRequested();
+    void reconnectRequested();
+    void checkForUpdatesRequested(QWidget *parent);
 
 protected:
     void closeEvent(QCloseEvent *event) override;

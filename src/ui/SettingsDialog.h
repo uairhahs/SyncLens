@@ -26,4 +26,5 @@ private:
     QCheckBox *m_startMinimized;
     QCheckBox *m_launchOnLogin;
     QCheckBox *m_notifications;
+    QCheckBox *m_checkForUpdates;
 };

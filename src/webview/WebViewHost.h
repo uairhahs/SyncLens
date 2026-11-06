@@ -2,10 +2,10 @@
 
 #include <QWidget>
 #include <QString>
+#include <QWebEnginePage>
 
 QT_BEGIN_NAMESPACE
 class QWebEngineView;
-class QWebEnginePage;
 class QWebEngineProfile;
 class QStackedWidget;
 class QLabel;
@@ -29,11 +29,16 @@ public:
     void showOfflinePage(const QString &message);
     void showWebView();
 
+    // Replace the page with a fresh one (new renderer process) and reload.
+    void reconnect();
+
 signals:
     void openInBrowserRequested(const QString &url);
 
 private:
     void onAuthRequired(const QUrl &requestUrl, QAuthenticator *authenticator);
+    void onRenderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus status, int exitCode);
+    void createPage();
 
     // Profile must outlive the page and view — declared first so it is
     // destroyed last (Qt child destruction is reverse-construction order).

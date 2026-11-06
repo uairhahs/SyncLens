@@ -25,6 +25,8 @@ qt_add_executable(synclens
     src/app/MainWindow.cpp
     src/app/SyncInstance.h
     src/app/SyncInstance.cpp
+    src/app/UpdateChecker.h
+    src/app/UpdateChecker.cpp
 
     src/webview/WebViewHost.h
     src/webview/WebViewHost.cpp
@@ -75,6 +77,7 @@ if(PkgConfig_FOUND)
 endif()
 
 target_include_directories(synclens PRIVATE src)
+target_compile_definitions(synclens PRIVATE SYNCLENS_VERSION="${PROJECT_VERSION}")
 
 install(TARGETS synclens DESTINATION bin)
 install(FILES resources/synclens.desktop DESTINATION share/applications)

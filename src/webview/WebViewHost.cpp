@@ -4,6 +4,7 @@
 #include <QWebEngineView>
 #include <QWebEnginePage>
 #include <QWebEngineProfile>
+#include <QMetaObject>
 #include <QStackedWidget>
 #include <QLabel>
 #include <QPushButton>
@@ -61,17 +62,45 @@ WebViewHost::WebViewHost(const QString &profileId, QWidget *parent)
     m_profile->setPersistentCookiesPolicy(
         QWebEngineProfile::ForcePersistentCookies);
 
+    createPage();
+
+    auto *rootLayout = new QVBoxLayout(this);
+    rootLayout->setContentsMargins(0, 0, 0, 0);
+    rootLayout->addWidget(m_stack);
+}
+
+void WebViewHost::createPage()
+{
     // Page is parented to the profile; the view uses setPage() and does NOT
     // take ownership.  When profile is eventually destroyed it deletes the page.
+    // A new page gets a new renderer process, which is what reconnect() needs.
     m_page = new QWebEnginePage(m_profile, m_profile);
     m_webView->setPage(m_page);
 
     connect(m_page, &QWebEnginePage::authenticationRequired,
             this, &WebViewHost::onAuthRequired);
+    connect(m_page, &QWebEnginePage::renderProcessTerminated,
+            this, &WebViewHost::onRenderProcessTerminated);
+}
 
-    auto *rootLayout = new QVBoxLayout(this);
-    rootLayout->setContentsMargins(0, 0, 0, 0);
-    rootLayout->addWidget(m_stack);
+void WebViewHost::reconnect()
+{
+    QWebEnginePage *old = m_page;
+    createPage();
+    // Detached from the view by setPage(); delete once Qt is done with it.
+    old->deleteLater();
+    if (!m_currentUrl.isEmpty())
+        loadUrl(m_currentUrl);
+}
+
+void WebViewHost::onRenderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus status,
+                                             int exitCode)
+{
+    Q_UNUSED(exitCode);
+    // Normal termination happens while a page is being replaced; anything
+    // else (crash, kill, OOM) leaves a blank view, so start a fresh renderer.
+    if (status != QWebEnginePage::NormalTerminationStatus)
+        QMetaObject::invokeMethod(this, &WebViewHost::reconnect, Qt::QueuedConnection);
 }
 
 void WebViewHost::loadUrl(const QString &url)

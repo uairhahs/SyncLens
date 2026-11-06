@@ -19,8 +19,9 @@ AboutDialog::AboutDialog(QWidget *parent)
     layout->setContentsMargins(28, 24, 28, 20);
 
     auto *title = new QLabel(
-        "<b style='font-size:16px;'>SyncLens</b>"
-        "&nbsp;<span style='color:#888; font-size:13px;'>0.1.3</span>",
+        QStringLiteral("<b style='font-size:16px;'>SyncLens</b>"
+                       "&nbsp;<span style='color:#888; font-size:13px;'>%1</span>")
+            .arg(QStringLiteral(SYNCLENS_VERSION)),
         this);
     title->setTextFormat(Qt::RichText);
     title->setAlignment(Qt::AlignCenter);

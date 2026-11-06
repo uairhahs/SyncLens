@@ -127,6 +127,36 @@ void SettingsManager::setHealthCheckIntervalMs(int ms)
     m_settings.setValue("health/intervalMs", ms);
 }
 
+bool SettingsManager::checkForUpdates() const
+{
+    return m_settings.value("updates/check", true).toBool();
+}
+
+void SettingsManager::setCheckForUpdates(bool value)
+{
+    m_settings.setValue("updates/check", value);
+}
+
+QDateTime SettingsManager::lastUpdateCheck() const
+{
+    return m_settings.value("updates/lastCheck").toDateTime();
+}
+
+void SettingsManager::setLastUpdateCheck(const QDateTime &when)
+{
+    m_settings.setValue("updates/lastCheck", when);
+}
+
+QString SettingsManager::lastNotifiedVersion() const
+{
+    return m_settings.value("updates/lastNotified").toString();
+}
+
+void SettingsManager::setLastNotifiedVersion(const QString &version)
+{
+    m_settings.setValue("updates/lastNotified", version);
+}
+
 // ---- Per-instance window geometry -----------------------------------------
 
 QSize SettingsManager::windowSize(const QString &instanceId) const

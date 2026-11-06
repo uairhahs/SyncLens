@@ -89,7 +89,7 @@ The `nix` command needs the `nix-command` and `flakes` experimental features ena
 | Feature             | Details                                                                       |
 | ------------------- | ----------------------------------------------------------------------------- |
 | Embedded WebUI      | Full Resilio Sync interface inside a native window, no browser tab needed     |
-| System tray         | One-click access, status indicator, open in browser, quit                     |
+| System tray         | One-click access, status indicator, open in browser, reconnect, quit          |
 | Health monitor      | Detects when Resilio is stopped or unreachable and shows a clear offline page |
 | Credential storage  | Passwords stored in GNOME Keyring or KWallet via libsecret (when available)   |
 | Session persistence | Stays signed in across restarts using a persistent browser profile            |
@@ -101,20 +101,16 @@ The `nix` command needs the `nix-command` and `flakes` experimental features ena
 
 ## Done
 
-- [X] Make a logo and app icon to replace the default Qt one and give it a distinct design language
-- [X] Add support for session persistence across multiple Sync instances with separate profiles and tray icons
-- [X] Add a "Quit SyncLens" option to the tray menu that gracefully shuts down the application
-- [X] Run as a service so it can be enabled at login and can run in the background
-- [X] Implement a "Open WebUI in browser" option that launches the default browser to the WebUI URL
-- [X] Add a "Refresh" option to the tray menu to manually check the connection status
-- [X] Set up arch pkgbuild and deb/rpm spec files for easier distribution
-
-## Todo
-
-- [ ] Implement a dark mode toggle that applies a custom stylesheet to the WebUI
-- [ ] Implement a "Reconnect" option that restarts the SyncLens process if the WebUI becomes unresponsive
-- [ ] Implement a "Check for updates" feature that notifies users when a new version of SyncLens is available on GitHub
-- [ ] Add support for custom icons and themes to better integrate with different desktop environments
+- [x] Make a logo and app icon to replace the default Qt one and give it a distinct design language
+- [x] Add support for session persistence across multiple Sync instances with separate profiles and tray icons
+- [x] Add a "Quit SyncLens" option to the tray menu that gracefully shuts down the application
+- [x] Run as a service so it can be enabled at login and can run in the background
+- [x] Implement a "Open WebUI in browser" option that launches the default browser to the WebUI URL
+- [x] Add a "Refresh" option to the tray menu to manually check the connection status
+- [x] Set up arch pkgbuild and deb/rpm spec files for easier distribution
+- [x] A "Reconnect" option that starts a fresh WebUI renderer, plus automatic recovery after an outage or renderer crash
+- [x] Check for updates: a daily check against GitHub releases, and **Help > Check for Updates**
+- [x] Icon themes can restyle the app and tray icons (see [Icon themes](#icon-themes))
 
 ## Tray icon states
 
@@ -125,7 +121,21 @@ The `nix` command needs the `nix-command` and `flakes` experimental features ena
 | Grey   | Pause  | Daemon is stopped                                  |
 | Red    | Cross  | WebUI is not responding or an error occurred       |
 
-Icons are SVGs in `resources/icons/`; run `resources/icons/generate_icons.py` to regenerate them.
+Icons are SVGs in `resources/icons/`; run `uv run resources/icons/generate_icons.py` to regenerate them.
+
+### Icon themes
+
+SyncLens loads its icons from your icon theme first and falls back to its bundled copies, so a theme can restyle them by providing icons with these names:
+
+| Icon name                  | Used for                    |
+| -------------------------- | --------------------------- |
+| `synclens`                 | App icon and notifications  |
+| `synclens-tray-healthy`    | Tray: running               |
+| `synclens-tray-connecting` | Tray: connecting or unknown |
+| `synclens-tray-stopped`    | Tray: daemon stopped        |
+| `synclens-tray-error`      | Tray: unreachable or error  |
+
+The installed tray icons use KDE's `current-color-scheme` stylesheet, so Plasma paints their arrows in the panel's text colour.
 
 ---
 
@@ -138,6 +148,9 @@ Open **File > Settings** to configure:
 - **Start minimized to tray** — launch without showing the main window
 - **Launch on login** — writes `~/.config/autostart/synclens.desktop` so your desktop environment starts SyncLens automatically; uncheck to remove it
 - **Desktop notifications** — toggle wrapper notifications on or off
+- **Check for updates daily** — ask GitHub once a day whether a newer release exists, and notify once per new version. **Help > Check for Updates** checks on demand
+
+**View > Reconnect** (F5), also in the tray menu, reloads the WebUI in a fresh renderer. SyncLens does this on its own when the WebUI comes back after an outage or the renderer crashes.
 
 ---
 

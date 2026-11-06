@@ -29,9 +29,12 @@ public:
   void start(bool startMinimized);
 
   void showWindow();
+  void reconnect();
+  void notify(const QString &title, const QString &message, const QString &url);
 
 signals:
   void manageInstancesRequested();
+  void checkForUpdatesRequested(QWidget *parent);
 
 private slots:
   void onHealthStateChanged(HealthState state);

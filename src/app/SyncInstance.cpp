@@ -32,7 +32,11 @@ SyncInstance::SyncInstance(InstanceConfig config,
   connect(m_tray, &TrayController::openInBrowserRequested, this, [this]()
           { QDesktopServices::openUrl(QUrl(m_config.url)); });
   connect(m_tray, &TrayController::refreshRequested, this, [this]()
-          { m_health->setUrl(m_config.url); });
+          { m_health->setUrl(m_config.url); m_health->probeNow(); });
+  connect(m_tray, &TrayController::reconnectRequested,
+          this, &SyncInstance::reconnect);
+  connect(m_tray, &TrayController::notificationClicked, this, [](const QString &url)
+          { QDesktopServices::openUrl(QUrl(url)); });
   connect(m_tray, &TrayController::quitRequested,
           qApp, &QApplication::quit);
 
@@ -40,6 +44,10 @@ SyncInstance::SyncInstance(InstanceConfig config,
           this, &SyncInstance::onInstanceConfigChanged);
   connect(m_window, &MainWindow::manageInstancesRequested,
           this, &SyncInstance::manageInstancesRequested);
+  connect(m_window, &MainWindow::reconnectRequested,
+          this, &SyncInstance::reconnect);
+  connect(m_window, &MainWindow::checkForUpdatesRequested,
+          this, &SyncInstance::checkForUpdatesRequested);
 }
 
 SyncInstance::~SyncInstance()
@@ -68,6 +76,18 @@ void SyncInstance::showWindow()
   m_window->show();
   m_window->raise();
   m_window->activateWindow();
+}
+
+void SyncInstance::reconnect()
+{
+  m_window->reconnect();
+  m_health->probeNow();
+}
+
+void SyncInstance::notify(const QString &title, const QString &message,
+                          const QString &url)
+{
+  m_tray->notify(title, message, url);
 }
 
 void SyncInstance::onHealthStateChanged(HealthState state)

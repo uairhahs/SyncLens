@@ -13,6 +13,7 @@
 #include <QAction>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QKeySequence>
 
 MainWindow::MainWindow(SettingsManager *settings, const InstanceConfig &config,
                        QWidget *parent)
@@ -64,7 +65,16 @@ void MainWindow::setupMenuBar()
     auto *quitAction = fileMenu->addAction(tr("&Quit"));
     connect(quitAction, &QAction::triggered, qApp, &QApplication::quit);
 
+    auto *viewMenu = menuBar()->addMenu(tr("&View"));
+    auto *reconnectAction = viewMenu->addAction(tr("&Reconnect"));
+    reconnectAction->setShortcut(QKeySequence::Refresh);
+    connect(reconnectAction, &QAction::triggered,
+            this, &MainWindow::reconnectRequested);
+
     auto *helpMenu = menuBar()->addMenu(tr("&Help"));
+    auto *updatesAction = helpMenu->addAction(tr("Check for &Updates..."));
+    connect(updatesAction, &QAction::triggered, this, [this]()
+            { emit checkForUpdatesRequested(this); });
     auto *aboutAction = helpMenu->addAction(tr("&About SyncLens"));
     connect(aboutAction, &QAction::triggered, this, [this]()
             {
@@ -83,10 +93,17 @@ void MainWindow::applyConfig(const InstanceConfig &cfg)
     m_lastState = HealthState::Unknown;
 }
 
+void MainWindow::reconnect()
+{
+    m_webViewLoaded = true;
+    m_webViewHost->reconnect();
+}
+
 void MainWindow::applyHealthState(HealthState state)
 {
     if (m_lastState == state)
         return;
+    const HealthState previous = m_lastState;
     m_lastState = state;
 
     if (state == HealthState::Running)
@@ -95,6 +112,14 @@ void MainWindow::applyHealthState(HealthState state)
         {
             m_webViewLoaded = true;
             m_webViewHost->loadUrl(m_config.url);
+        }
+        else if (previous == HealthState::Stopped ||
+                 previous == HealthState::Unreachable ||
+                 previous == HealthState::Error)
+        {
+            // The WebUI came back after an outage: the page still shows the
+            // failed load (or a dead session), so start it afresh.
+            m_webViewHost->reconnect();
         }
         m_webViewHost->showWebView();
     }

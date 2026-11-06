@@ -47,6 +47,7 @@ TrayController::TrayController(QObject *parent)
     m_openAction = m_menu->addAction(tr("Open SyncLens"));
     m_openBrowserAction = m_menu->addAction(tr("Open in Browser"));
     m_refreshAction = m_menu->addAction(tr("Refresh Status"));
+    m_reconnectAction = m_menu->addAction(tr("Reconnect"));
     m_menu->addSeparator();
     m_quitAction = m_menu->addAction(tr("Quit"));
 
@@ -58,6 +59,12 @@ TrayController::TrayController(QObject *parent)
             this, &TrayController::openInBrowserRequested);
     connect(m_refreshAction, &QAction::triggered,
             this, &TrayController::refreshRequested);
+    connect(m_reconnectAction, &QAction::triggered,
+            this, &TrayController::reconnectRequested);
+    connect(m_tray, &QSystemTrayIcon::messageClicked, this, [this]()
+            {
+        if (!m_notifyUrl.isEmpty())
+            emit notificationClicked(m_notifyUrl); });
     connect(m_quitAction, &QAction::triggered,
             this, &TrayController::quitRequested);
     connect(m_tray, &QSystemTrayIcon::activated,
@@ -129,6 +136,13 @@ void TrayController::onActivated(QSystemTrayIcon::ActivationReason reason)
 void TrayController::setLabel(const QString &label)
 {
     m_label = label;
+}
+
+void TrayController::notify(const QString &title, const QString &message,
+                            const QString &url)
+{
+    m_notifyUrl = url;
+    m_tray->showMessage(title, message, QIcon::fromTheme("synclens", QIcon(":/icons/synclens.svg")));
 }
 
 void TrayController::rebuildTooltip(HealthState state)

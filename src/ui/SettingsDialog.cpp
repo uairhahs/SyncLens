@@ -53,6 +53,11 @@ SettingsDialog::SettingsDialog(SettingsManager *settings, InstanceConfig *config
     m_notifications = new QCheckBox(tr("Enable desktop notifications"), this);
     m_notifications->setChecked(m_settings->notificationsEnabled());
     globalForm->addRow(QString(), m_notifications);
+
+    m_checkForUpdates = new QCheckBox(tr("Check for updates daily"), this);
+    m_checkForUpdates->setChecked(m_settings->checkForUpdates());
+    globalForm->addRow(QString(), m_checkForUpdates);
+
     root->addLayout(globalForm);
 
     root->addSpacing(8);
@@ -79,5 +84,6 @@ void SettingsDialog::accept()
     m_settings->setStartMinimized(m_startMinimized->isChecked());
     m_settings->setLaunchOnLogin(m_launchOnLogin->isChecked());
     m_settings->setNotificationsEnabled(m_notifications->isChecked());
+    m_settings->setCheckForUpdates(m_checkForUpdates->isChecked());
     QDialog::accept();
 }

@@ -17,6 +17,8 @@ public:
     void setIntervalMs(int ms);
     void start();
     void stop();
+    // Probe immediately instead of waiting for the next tick.
+    void probeNow() { probe(); }
 
     HealthState state() const { return m_state; }
 
