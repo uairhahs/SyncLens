@@ -1,6 +1,6 @@
 # Maintainer: uairhahs <https://github.com/uairhahs>
 pkgname=synclens
-pkgver=0.1.2
+pkgver=0.1.3
 pkgrel=1
 pkgdesc="Unofficial Qt wrapper for the Resilio Sync WebUI"
 arch=('x86_64')
@@ -22,7 +22,7 @@ makedepends=(
     'pkg-config'
 )
 source=("$pkgname-$pkgver.tar.gz::https://github.com/uairhahs/SyncLens/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('5f0859eaa14ba23e7397c386cd6c5f5ebe98b944b41b02b9e10592738afc19b8')
+sha256sums=('SKIP')  # replace with actual sha256 after tagging a release
 
 prepare() {
     cd "SyncLens-$pkgver"

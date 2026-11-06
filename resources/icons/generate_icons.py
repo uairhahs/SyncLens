@@ -58,22 +58,38 @@ def svg(body, defs=""):
     )
 
 
+def glare(radius, offset, colour, opacity):
+    """The part of the lens (circle of `radius` at the centre) above-left of the
+    diagonal line x + y = 2C - offset*sqrt(2), drawn as an explicit circular
+    segment. Avoids clipPath, which some renderers (e.g. Qt SVG, used by Plasma
+    for icons) ignore, which would let the glare spill over the whole icon."""
+    half = math.sqrt(radius * radius - offset * offset)  # half chord length
+    mx, my = C - offset / math.sqrt(2), C - offset / math.sqrt(2)  # chord midpoint
+    dx, dy = half / math.sqrt(2), -half / math.sqrt(2)  # along the chord
+    x0, y0 = mx - dx, my - dy  # lower-left end
+    x1, y1 = mx + dx, my + dy  # upper-right end
+    large = 1 if offset < 0 else 0
+    return (
+        f'<path d="M{x0:.2f} {y0:.2f}A{radius} {radius} 0 {large} 1 {x1:.2f} {y1:.2f}Z" '
+        f'fill="{colour}" fill-opacity="{opacity}"/>'
+    )
+
+
 def app_icon():
     # Flat disc with a white glyph, sized like Tela-circle (r=27 of 64).
     # Glass glare: a soft tint over the top-left half, a brighter band along its
     # outer edge, and a faint rim light on the opposite edge.
-    defs = f'<clipPath id="glass"><circle cx="{C}" cy="{C}" r="24"/></clipPath>'
     body = (
         f'<circle cx="{C}" cy="{C}" r="108" fill="#1C7CF0"/>'
         + sync_arcs(70, 14, 17, "#FFFFFF")
         + f'<circle cx="{C}" cy="{C}" r="34" fill="#FFFFFF"/>'
         + f'<circle cx="{C}" cy="{C}" r="24" fill="{NAVY}"/>'
-        + '<path d="M0 256L256 0L0 0Z" fill="#6FE7FF" fill-opacity="0.45" clip-path="url(#glass)"/>'
-        + '<path d="M0 236L236 0L0 0Z" fill="#FFFFFF" fill-opacity="0.2" clip-path="url(#glass)"/>'
+        + glare(24, 0, "#6FE7FF", 0.45)
+        + glare(24, 20 / math.sqrt(2), "#FFFFFF", 0.2)
         + '<path d="M146 134A19 19 0 0 1 134 146" fill="none" stroke="#6FE7FF" '
         'stroke-opacity="0.55" stroke-width="4" stroke-linecap="round"/>'
     )
-    return svg(body, defs)
+    return svg(body)
 
 
 # Default arrow colour, used when the icon isn't drawn by Plasma. TrayController

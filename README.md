@@ -54,7 +54,7 @@ makepkg -si
 Run it directly:
 
 ```bash
-nix run github:uairhahs/SyncLens/v0.1.2
+nix run github:uairhahs/SyncLens/v0.1.3
 ```
 
 On NixOS, add it as a flake input and include the package in your configuration:
@@ -62,7 +62,7 @@ On NixOS, add it as a flake input and include the package in your configuration:
 ```nix
 # flake.nix
 inputs.synclens = {
-  url = "github:uairhahs/SyncLens/v0.1.2";
+  url = "github:uairhahs/SyncLens/v0.1.3";
   inputs.nixpkgs.follows = "nixpkgs";
 };
 
