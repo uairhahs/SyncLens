@@ -17,3 +17,6 @@ result-*
 # python (uv)
 .venv/
 __pycache__/
+
+# editor
+.vscode/
