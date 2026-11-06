@@ -22,7 +22,7 @@ makedepends=(
     'pkg-config'
 )
 source=("$pkgname-$pkgver.tar.gz::https://github.com/uairhahs/SyncLens/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('SKIP')  # replace with actual sha256 after tagging a release
+sha256sums=('28f1009358bc8e7acb8da3a731b073fd7533ef9e1b81464e979234cace065ba0')
 
 prepare() {
     cd "SyncLens-$pkgver"
