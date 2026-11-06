@@ -13,3 +13,7 @@ Makefile
 result
 result-*
 
+
+# python (uv)
+.venv/
+__pycache__/
