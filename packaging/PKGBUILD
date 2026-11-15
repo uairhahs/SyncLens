@@ -27,6 +27,8 @@ makedepends=(
     'pkgconf'
 )
 install=synclens.install
+# No synclens-debug package: nothing ships or uses it.
+options=('!debug')
 source=()
 
 _srcroot() {

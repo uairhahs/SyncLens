@@ -25,15 +25,25 @@ entry() { # target, file
 }
 
 targets=()
+seen=" "
+add() { # target, file
+	if [[ ${seen} == *" $1 "* ]]; then
+		echo "error: more than one asset for target $1 (${2})" >&2
+		exit 1
+	fi
+	seen+="$1 "
+	targets+=("$(entry "$1" "$2")")
+}
 shopt -s nullglob
-for f in "${dir}"/synclens-*-x86_64.pkg.tar.zst; do
-	targets+=("$(entry arch-x86_64 "${f##*/}")")
+# synclens-<digit>... only: makepkg can also build synclens-debug-*.
+for f in "${dir}"/synclens-[0-9]*-x86_64.pkg.tar.zst; do
+	add arch-x86_64 "${f##*/}"
 done
-for f in "${dir}"/synclens-*-linux-*.tar.gz; do
+for f in "${dir}"/synclens-[0-9]*-linux-*.tar.gz; do
 	file="${f##*/}"
 	machine="${file%.tar.gz}"
 	machine="${machine##*-linux-}"
-	targets+=("$(entry "linux-${machine}" "${file}")")
+	add "linux-${machine}" "${file}"
 done
 [[ ${#targets[@]} -gt 0 ]] || {
 	echo "error: no release assets in ${dir}" >&2
