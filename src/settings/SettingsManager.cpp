@@ -1,5 +1,6 @@
 #include "SettingsManager.h"
 
+#include <QCoreApplication>
 #include <QDir>
 #include <QFile>
 #include <QStandardPaths>
@@ -112,7 +113,9 @@ void SettingsManager::setLaunchOnLogin(bool value)
             out << "[Desktop Entry]\n"
                 << "Name=SyncLens\n"
                 << "Comment=Unofficial Qt wrapper for the Resilio Sync WebUI\n"
-                << "Exec=synclens\n"
+                // Full path: the session's PATH may not include where
+                // SyncLens lives (e.g. ~/.local/bin for a per-user install).
+                << "Exec=" << QCoreApplication::applicationFilePath() << "\n"
                 << "Icon=synclens\n"
                 << "Type=Application\n"
                 << "Categories=Network;FileTransfer;\n"
