@@ -18,38 +18,38 @@ SyncLens gives Resilio Sync a proper Linux desktop home (system tray, a dedicate
 
 ## Installation
 
-### From source
+### Install script (Arch and other distributions)
+
+Install the latest release, or update to it:
 
 ```bash
-# 1. Clone
-git clone https://github.com/uairhahs/SyncLens.git
-cd SyncLens
-
-# 2. Configure
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
-
-# 3. Build
-cmake --build build --parallel
-
-# 4. Try it without installing (optional)
-./build/synclens
-
-# 5. Install
-sudo cmake --install build
+curl -fsSL https://raw.githubusercontent.com/uairhahs/SyncLens/main/scripts/install.sh | bash
 ```
 
-This installs the `synclens` binary, desktop entry, app icon and systemd user service. Omit `-DCMAKE_INSTALL_PREFIX=/usr` to install under `/usr/local` instead. Files installed this way are not tracked by your package manager.
+Run the same command again whenever SyncLens tells you a new version is out. From a clone, run `scripts/install.sh` instead. The script reads the latest [release](https://github.com/uairhahs/SyncLens/releases)'s `manifest.json`, checks the download against the SHA-256 listed there, and installs it one of two ways:
 
-**Optional dependency:** install `libsecret` (`libsecret-1-dev` on Debian/Ubuntu, `libsecret` on Arch) before configuring to enable secure password storage via GNOME Keyring or KWallet. Without it, only your username is remembered between sessions.
+- **On Arch** it installs the Arch package with `sudo pacman -U`, so pacman tracks the files and dependencies. If SyncLens was previously installed with `cmake --install`, the package takes over those files.
+- **On other distributions**, or with `--user` on Arch, it installs into `~/.local` for your user only, with no root. This needs your distribution's Qt 6.4 or later with QtWebEngine and QtSvg, plus libsecret; the script checks they are present before installing. For example, on Debian/Ubuntu 24.04 or later: `sudo apt install libqt6webenginewidgets6 libqt6svg6 libsecret-1-0`.
 
-### Arch Linux
+| Option             | Effect                                        |
+| ------------------ | --------------------------------------------- |
+| `--version v0.2.5` | Install that release instead of the latest    |
+| `--force`          | Reinstall the same version, or downgrade      |
+| `--user`           | Per-user install even on Arch                 |
+| `--uninstall`      | Remove a per-user install (settings are kept) |
 
-Build and install a package from the included `PKGBUILD`, run from a clone of this repository:
+Keep one copy per machine: the script refuses a per-user install while the Arch package is installed, and the other way round.
+
+### Arch package by hand
+
+Download the `.pkg.tar.zst` from the release page and run `sudo pacman -U synclens-*.pkg.tar.zst`, or build the package yourself from a clone (this packages the code you have checked out):
 
 ```bash
 cd packaging
 makepkg -si
 ```
+
+To update, `git pull` and run `makepkg -si` again. After an upgrade pacman reminds you to restart SyncLens, since a running copy keeps the old version.
 
 ### Nix
 
@@ -75,6 +75,32 @@ environment.systemPackages = [
 ```
 
 The `nix` command needs the `nix-command` and `flakes` experimental features enabled.
+
+### From source
+
+Install the build dependencies. On Debian/Ubuntu (24.04 or later):
+
+```bash
+sudo apt install cmake ninja-build pkg-config qt6-base-dev qt6-webengine-dev qt6-svg-dev libgl-dev libsecret-1-dev
+```
+
+Then build and install:
+
+```bash
+git clone https://github.com/uairhahs/SyncLens.git
+cd SyncLens
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+cmake --build build
+./build/synclens            # optional: try it without installing
+sudo cmake --install build
+```
+
+This installs the `synclens` binary, desktop entry, app icon and systemd user service. Omit `-DCMAKE_INSTALL_PREFIX=/usr` to install under `/usr/local` instead. Files installed this way are not tracked by your package manager.
+
+- **Update:** `git pull`, then run the `cmake --build` and `sudo cmake --install` lines again.
+- **Uninstall:** `sudo xargs rm < build/install_manifest.txt`.
+
+**libsecret is optional** (`libsecret-1-dev` on Debian/Ubuntu, `libsecret` on Arch). Install it before configuring to enable secure password storage via GNOME Keyring or KWallet. Without it, only your username is remembered between sessions.
 
 ---
 
@@ -214,6 +240,12 @@ systemctl --user disable --now synclens.service
 ```
 
 The service unit is installed to `$PREFIX/lib/systemd/user/synclens.service` and targets `graphical-session.target`, so it starts only after your desktop session is ready.
+
+---
+
+## Contributing
+
+Changes go through pull requests to `main`; see [CONTRIBUTING.md](CONTRIBUTING.md) for the branch rules, checks and release steps.
 
 ---
 
