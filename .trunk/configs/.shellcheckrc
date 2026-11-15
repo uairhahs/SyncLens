@@ -1,0 +1,5 @@
+enable=all
+source-path=SCRIPTDIR
+# SC2154: variables set outside the script (e.g. makepkg's $pkgdir).
+# SC2250: optional "always brace variables" style check.
+disable=SC2154,SC2250
