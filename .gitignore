@@ -20,3 +20,13 @@ __pycache__/
 
 # editor
 .vscode/
+
+# makepkg output (packaging/)
+packaging/src/
+packaging/pkg/
+packaging/*.pkg.tar*
+packaging/*.tar.gz
+packaging/*.log
+
+# release assets from scripts/build-tarball.sh
+/dist/
