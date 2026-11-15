@@ -33,7 +33,7 @@ Run the same command again whenever SyncLens tells you a new version is out. Fro
 
 | Option             | Effect                                        |
 | ------------------ | --------------------------------------------- |
-| `--version v0.2.5` | Install that release instead of the latest    |
+| `--version v0.2.6` | Install that release instead of the latest    |
 | `--force`          | Reinstall the same version, or downgrade      |
 | `--user`           | Per-user install even on Arch                 |
 | `--uninstall`      | Remove a per-user install (settings are kept) |
@@ -56,7 +56,7 @@ To update, `git pull` and run `makepkg -si` again. After an upgrade pacman remin
 Run it directly:
 
 ```bash
-nix run github:uairhahs/SyncLens/v0.2.5
+nix run github:uairhahs/SyncLens/v0.2.6
 ```
 
 On NixOS, add it as a flake input and include the package in your configuration:
@@ -64,7 +64,7 @@ On NixOS, add it as a flake input and include the package in your configuration:
 ```nix
 # flake.nix
 inputs.synclens = {
-  url = "github:uairhahs/SyncLens/v0.2.5";
+  url = "github:uairhahs/SyncLens/v0.2.6";
   inputs.nixpkgs.follows = "nixpkgs";
 };
 
