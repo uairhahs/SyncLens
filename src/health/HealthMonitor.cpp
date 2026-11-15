@@ -1,5 +1,6 @@
 #include "HealthMonitor.h"
 
+#include <QAuthenticator>
 #include <QNetworkRequest>
 #include <QUrl>
 
