@@ -7,9 +7,17 @@ name: Release
 #   manifest.json                        version, URL and SHA-256 per target
 #
 # scripts/install.sh reads manifest.json from the latest release.
+#
+# Releases are tagged automatically: on a push to main whose CMakeLists.txt
+# version has no tag yet (a merged `release: X.Y.Z` pull request), the tag job
+# creates the annotated vX.Y.Z tag and this run builds and publishes it. Other
+# pushes to main find their version already tagged and stop there. Pushing a
+# v* tag by hand still works.
 
 on:
   push:
+    branches:
+      - main
     tags:
       - v*
   # The input only picks which existing tag to build, as a tag push does, and
@@ -29,13 +37,52 @@ concurrency:
 permissions:
   contents: read
 
-env:
-  TAG: ${{ inputs.tag || github.ref_name }}
-
 jobs:
+  tag:
+    name: Tag the release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - name: Checkout code
+        if: github.ref == 'refs/heads/main'
+        uses: actions/checkout@v4
+
+      # A tag pushed with the workflow token does not start another workflow
+      # run, so the rest of this run builds it.
+      - name: Decide the tag, creating it for a new version on main
+        id: tag
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
+            tag="${INPUT_TAG:-${GITHUB_REF_NAME}}"
+          else
+            version="$(sed -n 's/^project(SyncLens VERSION \([0-9.]*\).*/\1/p' CMakeLists.txt)"
+            tag="v${version}"
+            if git ls-remote --exit-code --tags origin "refs/tags/${tag}" >/dev/null; then
+              echo "${tag} is already tagged; nothing to release."
+              tag=""
+            else
+              scripts/check-version.sh "${tag}"
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git tag -a "${tag}" -m "SyncLens ${version}"
+              git push origin "${tag}"
+              echo "Tagged ${tag} at ${GITHUB_SHA}."
+            fi
+          fi
+          echo "tag=${tag}" >>"${GITHUB_OUTPUT}"
+
   arch:
     name: Arch package
+    needs: tag
+    if: needs.tag.outputs.tag != ''
     runs-on: ubuntu-latest
+    env:
+      TAG: ${{ needs.tag.outputs.tag }}
     container:
       image: archlinux:base-devel
     steps:
@@ -77,7 +124,11 @@ jobs:
 
   tarball:
     name: Per-user tarball
+    needs: tag
+    if: needs.tag.outputs.tag != ''
     runs-on: ubuntu-24.04
+    env:
+      TAG: ${{ needs.tag.outputs.tag }}
     steps:
       - name: Checkout tag
         uses: actions/checkout@v4
@@ -109,11 +160,12 @@ jobs:
 
   publish:
     name: Publish assets and manifest
-    needs: [arch, tarball]
+    needs: [tag, arch, tarball]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     env:
+      TAG: ${{ needs.tag.outputs.tag }}
       GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout release tools
