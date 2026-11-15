@@ -128,6 +128,9 @@ manifest="$(curl -fsSL "${manifest_url}")" || die "cannot read the release manif
 flat="$(tr -d '\n ' <<<"${manifest}")"
 want="$(sed -n 's/^{"version":"\([^"]*\)".*/\1/p' <<<"${flat}")"
 if [[ ${MODE} == arch ]]; then target="arch-${machine}"; else target="linux-${machine}"; fi
+matches="$(grep -o "\"${target}\":{" <<<"${flat}" || true)"
+count="$(wc -l <<<"${matches}")"
+[[ ${count} -le 1 ]] || die "the release manifest lists ${target} more than once; not guessing which to install"
 entry="$(sed -n "s/.*\"${target}\":{\([^}]*\)}.*/\1/p" <<<"${flat}")"
 url="$(sed -n 's/.*"url":"\([^"]*\)".*/\1/p' <<<"${entry}")"
 sum="$(sed -n 's/.*"sha256":"\([^"]*\)".*/\1/p' <<<"${entry}")"
