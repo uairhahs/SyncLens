@@ -1,14 +1,16 @@
 # SyncLens
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 > An unofficial Qt desktop wrapper for the Resilio Sync WebUI on Linux
 
-SyncLens gives Resilio Sync a proper Linux desktop home — system tray, a dedicated app window, connection health indicator, and secure credential storage — without replacing or reimplementing anything Resilio already does.
+SyncLens gives Resilio Sync a proper Linux desktop home (system tray, a dedicated app window, connection health indicator and secure credential storage) without replacing or reimplementing anything Resilio already does.
 
 ---
 
 ## Requirements
 
-- Resilio Sync installed and running locally (any installation method)
+- Resilio Sync running locally or reachable over the network (any installation method)
 - Qt 6.4 or later with QtWebEngine
 - KDE / GNOME or any desktop with a system tray
 
@@ -80,38 +82,27 @@ The `nix` command needs the `nix-command` and `flakes` experimental features ena
 
 1. SyncLens starts and checks whether Resilio Sync is reachable at `http://127.0.0.1:8888/gui/`.
 2. If your WebUI is on a different address, go to **File > Settings** and update the URL.
-3. When Resilio requires a password, a native sign-in dialog appears. Check **Remember password** to store it securely in your system keychain — you will not be asked again unless the password changes.
+3. When Resilio requires a password, a native sign-in dialog appears. Check **Remember password** to store it securely in your system keychain; you will not be asked again unless the password changes.
 
 ---
 
 ## Features
 
-| Feature             | Details                                                                       |
-| ------------------- | ----------------------------------------------------------------------------- |
-| Embedded WebUI      | Full Resilio Sync interface inside a native window, no browser tab needed     |
-| System tray         | One-click access, status indicator, open in browser, reconnect, quit          |
-| Health monitor      | Detects when Resilio is stopped or unreachable and shows a clear offline page |
-| Credential storage  | Passwords stored in GNOME Keyring or KWallet via libsecret (when available)   |
-| Session persistence | Stays signed in across restarts using a persistent browser profile            |
-| Window geometry     | Remembers size and position between sessions                                  |
-| Start minimized     | Launch straight to tray, configurable in Settings                             |
-| Launch on login     | XDG autostart entry written automatically; optional systemd user service      |
+- **Embedded WebUI**: the full Resilio Sync interface in a native window, no browser tab needed
+- **Multiple instances**: connect to several Resilio Sync servers, local or remote, each with its own isolated browser session (see [Multiple instances](#multiple-instances))
+- **One tray icon**: left-click opens the default instance; right-click lists every instance with a coloured status dot, plus Quit
+- **Health monitor**: detects when Resilio is stopped or unreachable and shows a clear offline page
+- **Reconnect and recovery**: **View > Reconnect** starts a fresh WebUI renderer, and SyncLens does this on its own after an outage or renderer crash
+- **Credential storage**: passwords kept per instance in GNOME Keyring or KWallet via libsecret (when available)
+- **Session persistence**: stays signed in across restarts using a persistent browser profile per instance
+- **WebUI themes**: Catppuccin and other bundled palettes, custom themes and a user stylesheet (see [Themes](#themes))
+- **Icon themes**: your icon theme can restyle the app and tray icons (see [Icon themes](#icon-themes))
+- **Update checks**: a daily check against GitHub releases, plus **Help > Check for Updates**
+- **Start minimized and launch on login**: start straight to the tray, via an XDG autostart entry or the optional systemd user service
+- **Window geometry**: remembers each instance window's size and position
+- **Packaging**: Arch `PKGBUILD` and a Nix flake
 
 ---
-
-## Done
-
-- [x] Make a logo and app icon to replace the default Qt one and give it a distinct design language
-- [x] Add support for session persistence across multiple Sync instances with separate profiles and tray icons
-- [x] Add a "Quit SyncLens" option to the tray menu that gracefully shuts down the application
-- [x] Run as a service so it can be enabled at login and can run in the background
-- [x] Implement a "Open WebUI in browser" option that launches the default browser to the WebUI URL
-- [x] Add a "Refresh" option to the tray menu to manually check the connection status
-- [x] Set up arch pkgbuild and deb/rpm spec files for easier distribution
-- [x] A "Reconnect" option that starts a fresh WebUI renderer, plus automatic recovery after an outage or renderer crash
-- [x] Check for updates: a daily check against GitHub releases, and **Help > Check for Updates**
-- [x] Icon themes can restyle the app and tray icons (see [Icon themes](#icon-themes))
-- [x] WebUI colour themes, including Catppuccin, plus custom themes and a user stylesheet (see [Themes](#themes))
 
 ## Tray icon states
 
@@ -119,7 +110,7 @@ The `nix` command needs the `nix-command` and `flakes` experimental features ena
 | ------ | ------ | -------------------------------------------------- |
 | Green  | Dot    | Resilio Sync is running and the WebUI is reachable |
 | Amber  | Ring   | Connecting or status unknown                       |
-| Grey   | Pause  | Daemon is stopped                                  |
+| Blue   | Pause  | Daemon is stopped                                  |
 | Red    | Cross  | WebUI is not responding or an error occurred       |
 
 Icons are SVGs in `resources/icons/`; run `uv run resources/icons/generate_icons.py` to regenerate them.
@@ -185,15 +176,25 @@ Resilio's stylesheets hard-code every colour, so a theme is a palette rather tha
 
 Open **File > Settings** to configure:
 
-- **Name** — label shown in the window title and tray tooltip for this instance
-- **WebUI URL** — change if Resilio is bound to a non-default address or port
-- **Start minimized to tray** — launch without showing the main window
-- **Launch on login** — writes `~/.config/autostart/synclens.desktop` so your desktop environment starts SyncLens automatically; uncheck to remove it
-- **Desktop notifications** — toggle wrapper notifications on or off
-- **WebUI theme** — recolour the WebUI (see [Themes](#themes))
-- **Check for updates daily** — ask GitHub once a day whether a newer release exists, and notify once per new version. **Help > Check for Updates** checks on demand
+- **Name**: label shown in the window title and tray tooltip for this instance
+- **WebUI URL**: change if Resilio is bound to a non-default address or port
+- **Start minimized to tray**: launch without showing the main window
+- **Launch on login**: writes `~/.config/autostart/synclens.desktop` so your desktop environment starts SyncLens automatically; uncheck to remove it
+- **Desktop notifications**: toggle wrapper notifications on or off
+- **WebUI theme**: recolour the WebUI (see [Themes](#themes))
+- **Check for updates daily**: ask GitHub once a day whether a newer release exists, and notify once per new version. **Help > Check for Updates** checks on demand
 
-**View > Reconnect** (F5), also in the tray menu, reloads the WebUI in a fresh renderer. SyncLens does this on its own when the WebUI comes back after an outage or the renderer crashes.
+**View > Reconnect** (F5) reloads the WebUI in a fresh renderer. SyncLens does this on its own when the WebUI comes back after an outage or the renderer crashes.
+
+## Multiple instances
+
+**File > Manage Instances** adds, edits and removes Resilio Sync connections. Pressing **OK** switches to the highlighted instance. Each instance has its own window and browser session, and they share one tray icon. Only one instance window is open at a time: switching to another closes the current one to the tray.
+
+- Left-click the tray icon to open the default instance. Select an instance and click **Set as Default** to choose which one.
+- Right-click for the menu, which lists every instance with a coloured status dot; choose one to switch to it.
+- The icon shows the worst state across all instances, and the tooltip lists each one.
+
+Saved passwords are stored per instance URL and removed when you remove the instance.
 
 ---
 
