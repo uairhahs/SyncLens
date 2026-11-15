@@ -27,6 +27,10 @@ public:
     // Returns at least one entry; migrates legacy single-URL config on first call.
     QList<InstanceConfig> instances() const;
     void setInstances(const QList<InstanceConfig> &list);
+    // Instance opened by a left click on the tray icon. Falls back to the
+    // first instance when unset or no longer in the list.
+    QString defaultInstanceId() const;
+    void setDefaultInstanceId(const QString &id);
 
     // ---- Global application settings ----
     bool startMinimized() const;

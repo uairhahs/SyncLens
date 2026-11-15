@@ -19,8 +19,10 @@ static bool isValidWebUiUrl(const QString &raw)
 }
 
 InstanceManagerDialog::InstanceManagerDialog(SettingsManager *settings,
+                                             const QString &currentId,
                                              QWidget *parent)
-    : QDialog(parent), m_settings(settings), m_instances(settings->instances())
+    : QDialog(parent), m_settings(settings), m_instances(settings->instances()),
+      m_defaultId(settings->defaultInstanceId())
 {
   setWindowTitle(tr("Manage Sync Instances"));
   setMinimumWidth(500);
@@ -30,7 +32,8 @@ InstanceManagerDialog::InstanceManagerDialog(SettingsManager *settings,
 
   auto *desc = new QLabel(
       tr("Each instance connects to a separate Resilio Sync WebUI "
-         "and maintains its own browser session and tray icon."),
+"and maintains its own browser session. The default instance opens "
+         "when you click the tray icon."),
       this);
   desc->setWordWrap(true);
   root->addWidget(desc);
@@ -45,9 +48,11 @@ InstanceManagerDialog::InstanceManagerDialog(SettingsManager *settings,
   auto *addBtn = new QPushButton(tr("Add"), this);
   m_editBtn = new QPushButton(tr("Edit"), this);
   m_removeBtn = new QPushButton(tr("Remove"), this);
+  m_defaultBtn = new QPushButton(tr("Set as Default"), this);
   btnRow->addWidget(addBtn);
   btnRow->addWidget(m_editBtn);
   btnRow->addWidget(m_removeBtn);
+  btnRow->addWidget(m_defaultBtn);
   btnRow->addStretch();
   root->addLayout(btnRow);
 
@@ -65,13 +70,28 @@ InstanceManagerDialog::InstanceManagerDialog(SettingsManager *settings,
           this, &InstanceManagerDialog::onEdit);
   connect(m_removeBtn, &QPushButton::clicked,
           this, &InstanceManagerDialog::onRemove);
+  connect(m_defaultBtn, &QPushButton::clicked,
+          this, &InstanceManagerDialog::onSetDefault);
   connect(m_listWidget, &QListWidget::itemSelectionChanged,
           this, &InstanceManagerDialog::onSelectionChanged);
   connect(m_listWidget, &QListWidget::itemDoubleClicked,
           this, &InstanceManagerDialog::onEdit);
 
   refreshList();
+  for (qsizetype i = 0; i < m_instances.size(); ++i)
+  {
+    if (m_instances.at(i).id == currentId)
+      m_listWidget->setCurrentRow(static_cast<int>(i));
+  }
   onSelectionChanged();
+}
+
+QString InstanceManagerDialog::selectedId() const
+{
+  const int row = m_listWidget->currentRow();
+  if (row < 0 || row >= static_cast<int>(m_instances.size()))
+    return {};
+  return m_instances.at(row).id;
 }
 
 void InstanceManagerDialog::refreshList()
@@ -79,7 +99,12 @@ void InstanceManagerDialog::refreshList()
   const int prev = m_listWidget->currentRow();
   m_listWidget->clear();
   for (const InstanceConfig &cfg : std::as_const(m_instances))
-    m_listWidget->addItem(cfg.name + QStringLiteral("  \u2014  ") + cfg.url);
+  {
+    QString text = cfg.name + QStringLiteral("  -  ") + cfg.url;
+    if (cfg.id == m_defaultId)
+      text += QStringLiteral("  ") + tr("(default)");
+    m_listWidget->addItem(text);
+  }
   if (prev >= 0 && prev < m_listWidget->count())
     m_listWidget->setCurrentRow(prev);
 }
@@ -90,6 +115,7 @@ void InstanceManagerDialog::onSelectionChanged()
   const bool canDel = has && m_instances.size() > 1;
   m_editBtn->setEnabled(has);
   m_removeBtn->setEnabled(canDel);
+  m_defaultBtn->setEnabled(has && m_instances.at(m_listWidget->currentRow()).id != m_defaultId);
 }
 
 void InstanceManagerDialog::onAdd()
@@ -135,9 +161,22 @@ void InstanceManagerDialog::onRemove()
                              tr("At least one instance must remain."));
     return;
   }
+  const bool wasDefault = m_instances.at(row).id == m_defaultId;
   m_instances.removeAt(row);
+  if (wasDefault)
+    m_defaultId = m_instances.first().id;
   refreshList();
   m_listWidget->setCurrentRow(qBound(0, row, static_cast<int>(m_instances.size()) - 1));
+  onSelectionChanged();
+}
+
+void InstanceManagerDialog::onSetDefault()
+{
+  const int row = m_listWidget->currentRow();
+  if (row < 0 || row >= static_cast<int>(m_instances.size()))
+    return;
+  m_defaultId = m_instances.at(row).id;
+  refreshList();
   onSelectionChanged();
 }
 

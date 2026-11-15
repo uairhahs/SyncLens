@@ -56,6 +56,25 @@ void SettingsManager::setInstances(const QList<InstanceConfig> &list)
     m_settings.setValue("instances/order", order);
 }
 
+QString SettingsManager::defaultInstanceId() const
+{
+    // Stored outside the instances/ group: an instance may itself be called
+    // "default", and setInstances() rewrites that group.
+    const QString id = m_settings.value("app/defaultInstance").toString();
+    const QList<InstanceConfig> list = instances();
+    for (const InstanceConfig &cfg : list)
+    {
+        if (cfg.id == id)
+            return id;
+    }
+    return list.isEmpty() ? QString() : list.first().id;
+}
+
+void SettingsManager::setDefaultInstanceId(const QString &id)
+{
+    m_settings.setValue("app/defaultInstance", id);
+}
+
 // ---- Global settings ------------------------------------------------------
 
 bool SettingsManager::startMinimized() const

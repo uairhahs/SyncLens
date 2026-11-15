@@ -15,15 +15,21 @@ class InstanceManagerDialog : public QDialog
 {
   Q_OBJECT
 public:
+  // `currentId` is preselected: the instance whose window opened the dialog.
   explicit InstanceManagerDialog(SettingsManager *settings,
+                                 const QString &currentId = QString(),
                                  QWidget *parent = nullptr);
 
   QList<InstanceConfig> result() const { return m_instances; }
+  QString defaultId() const { return m_defaultId; }
+  // Instance highlighted when OK was pressed; empty if none.
+  QString selectedId() const;
 
 private slots:
   void onAdd();
   void onEdit();
   void onRemove();
+  void onSetDefault();
   void onSelectionChanged();
 
 private:
@@ -34,7 +40,9 @@ private:
 
   SettingsManager *m_settings;
   QList<InstanceConfig> m_instances;
+  QString m_defaultId;
   QListWidget *m_listWidget;
   QPushButton *m_editBtn;
   QPushButton *m_removeBtn;
+  QPushButton *m_defaultBtn;
 };
