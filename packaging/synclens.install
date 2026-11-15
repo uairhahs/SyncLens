@@ -1,0 +1,27 @@
+# pacman install hooks for synclens.
+# Icon and desktop caches are refreshed by pacman's own hooks
+# (gtk-update-icon-cache, desktop-file-utils), so nothing to do for them here.
+
+post_install() {
+    cat <<'EOF'
+==> Start SyncLens from your application menu, or run: synclens
+==> To start it at login, tick "Launch on login" in File > Settings,
+    or use the systemd user service: systemctl --user enable --now synclens.service
+EOF
+}
+
+post_upgrade() {
+    cat <<'EOF'
+==> SyncLens updated. A running copy keeps the old version until restarted:
+    quit it from the tray menu and start it again, or, if you use the
+    service: systemctl --user daemon-reload && systemctl --user restart synclens.service
+EOF
+}
+
+post_remove() {
+    cat <<'EOF'
+==> Settings and saved sessions are kept in ~/.config/SyncLens and
+    ~/.local/share/SyncLens; delete them to remove SyncLens completely.
+    Saved passwords stay in your keyring until removed there.
+EOF
+}

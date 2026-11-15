@@ -1,4 +1,9 @@
 # Maintainer: uairhahs <https://github.com/uairhahs>
+#
+# Builds the SyncLens checkout this file lives in, so `makepkg -si` from a
+# clone always packages exactly that code and needs no checksum update after
+# tagging. Release packages are built the same way by
+# .github/workflows/release.yml and attached to each GitHub release.
 pkgname=synclens
 pkgver=0.2.5
 pkgrel=1
@@ -19,19 +24,20 @@ makedepends=(
     'ninja'
     'qt6-tools'       # for moc/rcc/uic
     'libsecret'       # optional at runtime, required at build time to enable the feature
-    'pkg-config'
+    'pkgconf'
 )
-source=("$pkgname-$pkgver.tar.gz::https://github.com/uairhahs/SyncLens/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('ad211b30e8b3ef29e75d3fcbad6a8eaf253f628fb8694bc5a170b3ec7eb92b0c')
+install=synclens.install
+source=()
 
-prepare() {
-    cd "SyncLens-$pkgver"
+_srcroot() {
+    # The repository root: the parent of the directory holding this PKGBUILD.
+    realpath "$startdir/.."
 }
 
 build() {
     cmake \
         -B build \
-        -S "SyncLens-$pkgver" \
+        -S "$(_srcroot)" \
         -G Ninja \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=/usr
@@ -40,5 +46,5 @@ build() {
 
 package() {
     DESTDIR="$pkgdir" cmake --install build
-    install -Dm644 "SyncLens-$pkgver/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+    install -Dm644 "$(_srcroot)/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }
