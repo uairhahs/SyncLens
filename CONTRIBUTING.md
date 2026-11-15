@@ -36,16 +36,9 @@ scripts/build-tarball.sh     # build the per-user tarball into ./dist
 ## Releasing
 
 1. On a branch, bump the version in `CMakeLists.txt`, `packaging/PKGBUILD` (`pkgver`, and reset `pkgrel=1`), `nix/package.nix` and the `v…` references in `README.md`. `scripts/check-version.sh` confirms they agree.
-2. Open a pull request titled `release: X.Y.Z` and merge it.
-3. Tag the merged commit and push the tag:
-
-   ```bash
-   git switch main && git pull
-   git tag -a vX.Y.Z -m "SyncLens X.Y.Z"
-   git push origin vX.Y.Z
-   ```
-
-4. `.github/workflows/release.yml` builds the release assets from the tag and attaches them to the release, creating it with generated notes if it doesn't exist. Edit the notes on the release page or with `gh release edit vX.Y.Z`.
+2. Open a pull request titled `release: X.Y.Z` and merge it. That is the release: on the push to `main`, `.github/workflows/release.yml` sees that `vX.Y.Z` has no tag yet, creates the annotated tag on the merge commit and builds the release from it. Pushes to `main` whose version is already tagged release nothing.
+3. Pushing a `vX.Y.Z` tag by hand also starts a release, if you need to tag a different commit.
+4. The workflow builds the release assets from the tag and attaches them to the release, creating it with generated notes if it doesn't exist. Edit the notes on the release page or with `gh release edit vX.Y.Z`.
 
 | Asset                                 | Built on                    | Used by                                           |
 | ------------------------------------- | --------------------------- | ------------------------------------------------- |
