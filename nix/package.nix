@@ -13,7 +13,7 @@
 
 stdenv.mkDerivation {
   pname = "synclens";
-  version = "0.2.0";
+  version = "0.2.5";
 
   src = lib.cleanSource ../.;
 
