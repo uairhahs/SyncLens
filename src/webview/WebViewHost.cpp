@@ -23,20 +23,20 @@
 WebViewHost::WebViewHost(const QString &profileId, QWidget *parent)
     : QWidget(parent)
 {
-    // ── Destruction-order guarantee ──────────────────────────────────────────
-    // Qt deletes children in FIFO order (first added → first deleted).
+    // ---- Destruction-order guarantee ----------------------------------------
+    // Qt deletes children in FIFO order (first added, first deleted).
     // Required order for QtWebEngine: view first, page second, profile last.
     // We achieve this by adding m_stack (parent of the view) to the children
     // list BEFORE m_profile (parent of the page).  Profile is created last so
     // it sits later in the children list and is therefore deleted last.
-    // ─────────────────────────────────────────────────────────────────────────
+    // -------------------------------------------------------------------------
 
-    // 1. Stack and view — must be destroyed FIRST.
+    // 1. Stack and view: must be destroyed FIRST.
     m_stack = new QStackedWidget(this); // children[0]
 
     m_webView = new QWebEngineView(m_stack);
 
-    // Offline / error page (also a stack child — destroyed together with m_stack).
+    // Offline / error page (also a stack child, destroyed together with m_stack).
     m_offlinePage = new QWidget(m_stack);
     auto *offlineLayout = new QVBoxLayout(m_offlinePage);
     offlineLayout->setAlignment(Qt::AlignCenter);
@@ -56,7 +56,7 @@ WebViewHost::WebViewHost(const QString &profileId, QWidget *parent)
     m_stack->addWidget(m_webView);
     m_stack->addWidget(m_offlinePage);
 
-    // 2. Profile and page — must be destroyed LAST.
+    // 2. Profile and page: must be destroyed LAST.
     // Profile stores cookies in:
     //   ~/.local/share/<OrgName>/<AppName>/QtWebEngine/<profileId>/
     // Each Sync instance gets its own profile, so sessions are fully isolated.
@@ -198,7 +198,7 @@ void WebViewHost::onAuthRequired(const QUrl &requestUrl, QAuthenticator *authent
     // transient challenge can't wipe a working password.
     const Credential hint = CredentialStore::load(urlKey); // username hint even in fallback mode
 
-    // ── Dialog ───────────────────────────────────────────────────────────────
+    // ---- Dialog -------------------------------------------------------------
     QDialog dlg(window());
     dlg.setWindowTitle("SyncLens");
     dlg.setWindowFlags(dlg.windowFlags() & ~Qt::WindowContextHelpButtonHint);

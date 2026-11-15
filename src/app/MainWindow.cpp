@@ -39,7 +39,7 @@ void MainWindow::updateWindowTitle()
 {
     const bool isDefault = m_config.name.isEmpty() || m_config.name == QLatin1String("Default");
     setWindowTitle(isDefault ? QStringLiteral("SyncLens")
-                             : QStringLiteral("SyncLens \u2014 ") + m_config.name);
+                             : QStringLiteral("SyncLens - ") + m_config.name);
 }
 
 void MainWindow::setupMenuBar()

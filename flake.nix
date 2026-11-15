@@ -1,5 +1,5 @@
 {
-  description = "SyncLens — Qt desktop wrapper for the Resilio Sync WebUI";
+  description = "SyncLens: Qt desktop wrapper for the Resilio Sync WebUI";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 

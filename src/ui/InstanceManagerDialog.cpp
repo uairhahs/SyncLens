@@ -196,7 +196,7 @@ InstanceConfig InstanceManagerDialog::promptForConfig(const InstanceConfig &init
 
   auto *buttons = new QDialogButtonBox(
       QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dlg);
-  // Validate URL before accepting — do not wire accepted() directly.
+  // Validate URL before accepting; do not wire accepted() directly.
   auto *okBtn = buttons->button(QDialogButtonBox::Ok);
   QObject::connect(okBtn, &QPushButton::clicked, &dlg, [&]()
                    {

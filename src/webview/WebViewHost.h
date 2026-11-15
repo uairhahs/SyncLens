@@ -47,7 +47,7 @@ private:
     void onRenderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus status, int exitCode);
     void createPage();
 
-    // Profile must outlive the page and view — declared first so it is
+    // Profile must outlive the page and view. It is declared first so it is
     // destroyed last (Qt child destruction is reverse-construction order).
     QWebEngineProfile *m_profile;
     QWebEnginePage *m_page;
