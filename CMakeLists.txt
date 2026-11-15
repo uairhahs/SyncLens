@@ -70,12 +70,12 @@ find_package(PkgConfig QUIET)
 if(PkgConfig_FOUND)
     pkg_check_modules(LIBSECRET QUIET libsecret-1)
     if(LIBSECRET_FOUND)
-        message(STATUS "libsecret found — credential persistence enabled")
+        message(STATUS "libsecret found: credential persistence enabled")
         target_compile_definitions(synclens PRIVATE HAS_LIBSECRET)
         target_include_directories(synclens PRIVATE ${LIBSECRET_INCLUDE_DIRS})
         target_link_libraries(synclens PRIVATE ${LIBSECRET_LIBRARIES})
     else()
-        message(STATUS "libsecret not found — credentials not persisted across sessions (install libsecret-1-dev / libsecret to enable)")
+        message(STATUS "libsecret not found: credentials not persisted across sessions (install libsecret-1-dev / libsecret to enable)")
     endif()
 endif()
 
@@ -92,6 +92,6 @@ install(FILES
     resources/icons/synclens-tray-stopped.svg
     resources/icons/synclens-tray-error.svg
     DESTINATION share/icons/hicolor/scalable/status)
-# systemd user service — installed to the per-user unit directory so users
+# systemd user service, installed to the per-user unit directory so users
 # can opt in with: systemctl --user enable synclens.service
 install(FILES resources/synclens.service DESTINATION lib/systemd/user)

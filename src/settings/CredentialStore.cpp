@@ -11,7 +11,7 @@ static QString urlSettingsKey(const QString &url)
       QCryptographicHash::hash(url.toUtf8(), QCryptographicHash::Sha1).toHex());
 }
 
-// ── libsecret backend ────────────────────────────────────────────────────────
+// ---- libsecret backend -----------------------------------------------------
 #ifdef HAS_LIBSECRET
 
 // Qt defines 'signals' as a keyword-macro; GLib/GDBus also uses 'signals' as
@@ -44,7 +44,7 @@ bool CredentialStore::backendAvailable() { return true; }
 void CredentialStore::save(const QString &url, const QString &username,
                            const QString &password)
 {
-  // Username is not sensitive — store in QSettings keyed by URL hash.
+  // Username is not sensitive, so store it in QSettings keyed by URL hash.
   // Using a hash avoids QSettings group-separator conflicts with '/' in URLs.
   QSettings s("SyncLens", "SyncLens");
   s.setValue("auth/" + urlSettingsKey(url) + "/username", username);
@@ -120,7 +120,7 @@ void CredentialStore::clear(const QString &url)
     g_error_free(error);
 }
 
-// ── fallback (no libsecret) ──────────────────────────────────────────────────
+// ---- fallback (no libsecret) -----------------------------------------------
 #else
 
 bool CredentialStore::backendAvailable() { return false; }
@@ -143,7 +143,7 @@ Credential CredentialStore::load(const QString &url)
     username = s.value("auth/username").toString(); // legacy migration
   Credential c;
   c.username = username;
-  // valid stays false — caller must show dialog but can pre-fill username.
+  // valid stays false: the caller must show dialog but can pre-fill username.
   return c;
 }
 

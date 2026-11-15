@@ -6,7 +6,7 @@
 // selectors, this rewrites colour values in place. A theme is a palette:
 //
 //   greys:   any number of neutral colours; Resilio's greys are mapped onto
-//            them by lightness, so black→darkest and white→lightest.
+//            them by lightness, so black maps to darkest and white to lightest.
 //   accents: saturated colours; each Resilio colour takes the nearest hue,
 //            keeping its relative lightness so hover/active shades differ.
 //   primary: optional; replaces Resilio's brand blue (its highlight colour)
