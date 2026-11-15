@@ -94,4 +94,7 @@ install(FILES
     DESTINATION share/icons/hicolor/scalable/status)
 # systemd user service, installed to the per-user unit directory so users
 # can opt in with: systemctl --user enable synclens.service
-install(FILES resources/synclens.service DESTINATION lib/systemd/user)
+include(GNUInstallDirs)
+set(SYNCLENS_BINDIR "${CMAKE_INSTALL_FULL_BINDIR}")
+configure_file(resources/synclens.service.in synclens.service @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/synclens.service DESTINATION lib/systemd/user)
