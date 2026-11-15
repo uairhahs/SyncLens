@@ -82,7 +82,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends cmake ninja-build pkg-config \
-            qt6-base-dev qt6-webengine-dev qt6-svg-dev libgl-dev libsecret-1-dev
+            qt6-base-dev qt6-webengine-dev qt6-svg-dev libgl-dev libsecret-1-dev patchelf
 
       - name: Build tarball
         run: scripts/build-tarball.sh . dist
@@ -105,6 +105,34 @@ jobs:
           scripts/install.sh | grep -q "up to date"
           scripts/install.sh --uninstall
           test ! -e "${HOME}/.local/bin/synclens"
+
+      # A system without a library SyncLens needs (e.g. no QtWebEngine) must be
+      # refused before anything is installed. patchelf makes the binary need a
+      # library that does not exist.
+      - name: Per-user install refuses missing libraries
+        run: |
+          work="${RUNNER_TEMP}/missing"
+          mkdir -p "${work}/latest/download"
+          tar -xzf dist/*.tar.gz -C "${work}"
+          root="$(find "${work}" -mindepth 1 -maxdepth 1 -type d -name 'synclens-*' -print -quit)"
+          name="${root##*/}"
+          patchelf --add-needed libsynclens-missing.so.1 "${root}/bin/synclens"
+          tar -C "${work}" -czf "${work}/${name}.tar.gz" "${name}"
+          sum="$(sha256sum "${work}/${name}.tar.gz" | cut -d' ' -f1)"
+          version="$(cat "${root}/VERSION")"
+          printf '{"version":"%s","targets":{"linux-x86_64":{"url":"file://%s","sha256":"%s"}}}\n' \
+            "${version}" "${work}/${name}.tar.gz" "${sum}" >"${work}/latest/download/manifest.json"
+          export HOME="${RUNNER_TEMP}/missing-home" SYNCLENS_RELEASES_URL="file://${work}"
+          mkdir -p "${HOME}"
+          if scripts/install.sh >"${work}/out.txt" 2>&1; then
+            cat "${work}/out.txt"
+            echo "Error: install.sh accepted a binary with a missing library"
+            exit 1
+          fi
+          cat "${work}/out.txt"
+          grep -q "libsynclens-missing.so.1" "${work}/out.txt"
+          test ! -e "${HOME}/.local/bin/synclens"
+          test ! -e "${HOME}/.local/share/synclens"
 
       - name: Upload tarball
         uses: actions/upload-artifact@v4
