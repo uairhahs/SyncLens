@@ -1,9 +1,7 @@
 #include "SyncInstance.h"
 #include "MainWindow.h"
-#include "tray/TrayController.h"
 #include "health/HealthMonitor.h"
 
-#include <QApplication>
 #include <QDesktopServices>
 #include <QUrl>
 
@@ -14,31 +12,13 @@ SyncInstance::SyncInstance(InstanceConfig config,
 {
   // Window has no Qt parent so its lifecycle is fully controlled here.
   m_window = new MainWindow(m_globalSettings, m_config);
-  m_tray = new TrayController(this);
   m_health = new HealthMonitor(this);
 
-  m_tray->setLabel(m_config.name);
   m_health->setUrl(m_config.url);
   m_health->setIntervalMs(m_globalSettings->healthCheckIntervalMs());
 
   connect(m_health, &HealthMonitor::stateChanged,
           this, &SyncInstance::onHealthStateChanged);
-
-  connect(m_tray, &TrayController::openWindowRequested, this, [this]()
-          {
-        m_window->show();
-        m_window->raise();
-        m_window->activateWindow(); });
-  connect(m_tray, &TrayController::openInBrowserRequested, this, [this]()
-          { QDesktopServices::openUrl(QUrl(m_config.url)); });
-  connect(m_tray, &TrayController::refreshRequested, this, [this]()
-          { m_health->setUrl(m_config.url); m_health->probeNow(); });
-  connect(m_tray, &TrayController::reconnectRequested,
-          this, &SyncInstance::reconnect);
-  connect(m_tray, &TrayController::notificationClicked, this, [](const QString &url)
-          { QDesktopServices::openUrl(QUrl(url)); });
-  connect(m_tray, &TrayController::quitRequested,
-          qApp, &QApplication::quit);
 
   connect(m_window, &MainWindow::instanceConfigChanged,
           this, &SyncInstance::onInstanceConfigChanged);
@@ -58,24 +38,27 @@ SyncInstance::~SyncInstance()
 void SyncInstance::applyConfig(const InstanceConfig &cfg)
 {
   m_config = cfg;
-  m_tray->setLabel(m_config.name);
   m_health->setUrl(m_config.url);
   m_window->applyConfig(cfg); // update title and reload webview
 }
 
-void SyncInstance::start(bool startMinimized)
+void SyncInstance::start()
 {
-  m_tray->show();
-  if (!startMinimized)
-    m_window->show();
   m_health->start();
 }
 
 void SyncInstance::showWindow()
 {
+  // show() alone leaves a minimised window in the taskbar.
+  m_window->setWindowState(m_window->windowState() & ~Qt::WindowMinimized);
   m_window->show();
   m_window->raise();
   m_window->activateWindow();
+}
+
+void SyncInstance::hideWindow()
+{
+  m_window->hide();
 }
 
 void SyncInstance::setThemeScript(const QString &source)
@@ -89,23 +72,27 @@ void SyncInstance::reconnect()
   m_health->probeNow();
 }
 
-void SyncInstance::notify(const QString &title, const QString &message,
-                          const QString &url)
+void SyncInstance::openInBrowser()
 {
-  m_tray->notify(title, message, url);
+  QDesktopServices::openUrl(QUrl(m_config.url));
+}
+
+void SyncInstance::refreshStatus()
+{
+  m_health->setUrl(m_config.url);
+  m_health->probeNow();
 }
 
 void SyncInstance::onHealthStateChanged(HealthState state)
 {
-  m_tray->updateState(state);
+  m_state = state;
   m_window->applyHealthState(state);
-  m_previousState = state;
+  emit healthStateChanged(m_config.id, state);
 }
 
 void SyncInstance::onInstanceConfigChanged(const InstanceConfig &cfg)
 {
   m_config = cfg;
-  m_tray->setLabel(m_config.name);
   m_health->setUrl(m_config.url);
 
   // Persist the updated instance in the settings list.
@@ -119,4 +106,5 @@ void SyncInstance::onInstanceConfigChanged(const InstanceConfig &cfg)
     }
   }
   m_globalSettings->setInstances(list);
+  emit configChanged(m_config);
 }

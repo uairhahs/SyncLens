@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QList>
 #include <QSystemTrayIcon>
 #include "health/HealthState.h"
 
@@ -9,25 +10,37 @@ class QMenu;
 class QAction;
 QT_END_NAMESPACE
 
+// The single application-wide tray icon. It shows the worst health state of
+// all instances; with several instances the menu lists them, and choosing
+// one opens its window.
 class TrayController : public QObject
 {
     Q_OBJECT
 public:
+    struct Entry
+    {
+        QString id;
+        QString name;
+        HealthState state = HealthState::Unknown;
+    };
+
     explicit TrayController(QObject *parent = nullptr);
+    ~TrayController() override;
 
     void show();
-    void updateState(HealthState state);
-    // Sets the instance label shown in the tooltip (e.g. "Home").
-    // Leave empty for a single-instance setup.
-    void setLabel(const QString &label);
-    // Desktop notification from this tray icon; clicking it opens `url`.
+    // Replace the instance list (order = menu order).
+    void setInstances(const QList<Entry> &entries);
+    // Instance whose window a left click opens.
+    void setDefaultInstance(const QString &id);
+    void updateState(const QString &id, HealthState state);
+    // Desktop notification from the tray icon; clicking it opens `url`.
     void notify(const QString &title, const QString &message, const QString &url);
 
 signals:
-    void openWindowRequested();
-    void openInBrowserRequested();
-    void refreshRequested();
-    void reconnectRequested();
+    void openWindowRequested(const QString &id);
+    void openInBrowserRequested(const QString &id);
+    void refreshRequested(const QString &id);
+    void reconnectRequested(const QString &id);
     void notificationClicked(const QString &url);
     void quitRequested();
 
@@ -38,17 +51,15 @@ private slots:
     void onActivated(QSystemTrayIcon::ActivationReason reason);
 
 private:
-    void rebuildTooltip(HealthState state);
-    void applyIcon();
+    void rebuildMenu();
+    void refresh(); // icon + tooltip + menu labels
+    void addInstanceActions(QMenu *menu, const QString &id);
+    HealthState aggregateState() const;
 
     QSystemTrayIcon *m_tray;
     QMenu *m_menu;
-    QAction *m_openAction;
-    QAction *m_openBrowserAction;
-    QAction *m_refreshAction;
-    QAction *m_reconnectAction;
-    QAction *m_quitAction;
-    QString m_label;
+    QList<Entry> m_entries;
+    QList<QAction *> m_instanceActions; // parallel to m_entries when there are several
+    QString m_defaultId;
     QString m_notifyUrl;
-    HealthState m_state = HealthState::Unknown;
 };

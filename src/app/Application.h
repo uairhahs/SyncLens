@@ -9,6 +9,7 @@
 class SyncInstance;
 class UpdateChecker;
 class ThemeManager;
+class TrayController;
 
 class Application : public QApplication
 {
@@ -24,6 +25,10 @@ private:
     SyncInstance *addInstance(const InstanceConfig &cfg);
     void applyInstanceChanges(const QList<InstanceConfig> &newList);
     void onManageInstancesRequested();
+    SyncInstance *instanceById(const QString &id) const;
+    // Show this instance's window and close the others to the tray.
+    void switchTo(const QString &id);
+    void syncTrayInstances();
 
     void applyTheme(bool force = false);
 
@@ -35,6 +40,7 @@ private:
 
     SettingsManager *m_settings;
     QList<SyncInstance *> m_instances;
+    TrayController *m_tray;
     bool m_manageDialogOpen = false;
 
     ThemeManager *m_themes;
