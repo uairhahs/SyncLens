@@ -83,6 +83,11 @@ void WebViewHost::createPage()
             this, &WebViewHost::onAuthRequired);
     connect(m_page, &QWebEnginePage::renderProcessTerminated,
             this, &WebViewHost::onRenderProcessTerminated);
+    // Covers in-page navigations and redirects, not only loadUrl().
+    connect(m_page, &QWebEnginePage::loadStarted, this, [this]()
+            {
+        m_triedStored = false;
+        m_authCancelled = false; });
 }
 
 void WebViewHost::reconnect()
@@ -128,7 +133,8 @@ void WebViewHost::setThemeScript(const QString &source)
 
 void WebViewHost::loadUrl(const QString &url)
 {
-    m_authAttempt = 0; // reset on every new navigation
+    m_triedStored = false;
+    m_authCancelled = false;
     m_currentUrl = url;
     m_webView->setUrl(QUrl(url));
 }
@@ -149,31 +155,48 @@ void WebViewHost::showWebView()
     m_stack->setCurrentWidget(m_webView);
 }
 
+QString WebViewHost::credentialKey(const QUrl &requestUrl) const
+{
+    const QUrl instance(m_currentUrl);
+    const bool sameOrigin =
+        requestUrl.scheme() == instance.scheme() &&
+        requestUrl.host().compare(instance.host(), Qt::CaseInsensitive) == 0 &&
+        requestUrl.port(-1) == instance.port(-1);
+    if (sameOrigin && !m_currentUrl.isEmpty())
+        return m_currentUrl;
+    // Different origin (e.g. a redirect to another host): key by that origin
+    // so the instance's password is never sent there.
+    return requestUrl.adjusted(QUrl::RemovePath | QUrl::RemoveQuery |
+                               QUrl::RemoveFragment | QUrl::RemoveUserInfo)
+        .toString();
+}
+
 void WebViewHost::onAuthRequired(const QUrl &requestUrl, QAuthenticator *authenticator)
 {
-    const QString urlKey = requestUrl.toString(QUrl::RemoveQuery | QUrl::RemoveFragment);
+    const QString urlKey = credentialKey(requestUrl);
 
-    // First attempt: try stored credentials silently without showing a dialog.
-    if (m_authAttempt == 0)
+    // Offer stored credentials silently once per navigation.
+    if (!m_triedStored)
     {
-        ++m_authAttempt;
-        Credential stored = CredentialStore::load(urlKey);
+        m_triedStored = true;
+        const Credential stored = CredentialStore::load(urlKey);
         if (stored.valid)
         {
             authenticator->setUser(stored.username);
             authenticator->setPassword(stored.password);
             return; // Qt will retry the request with these credentials.
         }
-        // No stored credentials — fall through to the dialog below.
     }
 
-    // Second attempt onward: stored credentials were wrong or absent.
-    // Clear any stale entry and show the login dialog.
-    if (m_authAttempt > 1)
-        CredentialStore::clear(urlKey);
-    ++m_authAttempt;
+    // The user already declined for this navigation: fail quietly instead of
+    // stacking a dialog per sub-resource.
+    if (m_authCancelled)
+        return;
 
-    Credential hint = CredentialStore::load(urlKey); // username hint even in fallback mode
+    // Stored credentials were absent or rejected. They are kept until the
+    // user signs in again (save overwrites them) or unticks "Remember", so a
+    // transient challenge can't wipe a working password.
+    const Credential hint = CredentialStore::load(urlKey); // username hint even in fallback mode
 
     // ── Dialog ───────────────────────────────────────────────────────────────
     QDialog dlg(window());
@@ -261,5 +284,9 @@ void WebViewHost::onAuthRequired(const QUrl &requestUrl, QAuthenticator *authent
         else
             CredentialStore::clear(urlKey);
     }
-    // If cancelled: authenticator stays empty → single ERR_FAILED, no loop.
+    else
+    {
+        // Authenticator stays empty, so a single ERR_FAILED, no loop.
+        m_authCancelled = true;
+    }
 }
