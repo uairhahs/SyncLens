@@ -5,7 +5,7 @@
 # tagging. Release packages are built the same way by
 # .github/workflows/release.yml and attached to each GitHub release.
 pkgname=synclens
-pkgver=0.2.5
+pkgver=0.2.6
 pkgrel=1
 pkgdesc="Unofficial Qt wrapper for the Resilio Sync WebUI"
 arch=('x86_64')
