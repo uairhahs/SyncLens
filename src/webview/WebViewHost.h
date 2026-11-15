@@ -41,6 +41,9 @@ signals:
 
 private:
     void onAuthRequired(const QUrl &requestUrl, QAuthenticator *authenticator);
+    // Keychain key for a challenge: the instance URL when the request is on
+    // the instance's origin, so every sub-resource maps to one entry.
+    QString credentialKey(const QUrl &requestUrl) const;
     void onRenderProcessTerminated(QWebEnginePage::RenderProcessTerminationStatus status, int exitCode);
     void createPage();
 
@@ -56,8 +59,8 @@ private:
     QPushButton *m_openBrowserButton;
     QString m_currentUrl;
 
-    // Tracks how many times authenticationRequired has fired for the current
-    // page load. 0 = first attempt (try stored creds silently);
-    // 1+ = stored creds failed or user cancelled (show dialog).
-    int m_authAttempt = 0;
+    // Per main-frame navigation: stored credentials are offered once, then
+    // the user is asked; after a cancel, further challenges just fail.
+    bool m_triedStored = false;
+    bool m_authCancelled = false;
 };
