@@ -1,0 +1,144 @@
+name: Release
+# Builds the release assets for a version tag and attaches them to that tag's
+# GitHub release (created with generated notes if it does not exist yet):
+#
+#   synclens-X.Y.Z-1-x86_64.pkg.tar.zst  Arch package (Arch container)
+#   synclens-X.Y.Z-linux-x86_64.tar.gz   per-user tarball (Ubuntu 24.04, Qt 6.4)
+#   manifest.json                        version, URL and SHA-256 per target
+#
+# scripts/install.sh reads manifest.json from the latest release.
+
+on:
+  push:
+    tags:
+      - v*
+  # The input only picks which existing tag to build, as a tag push does, and
+  # the jobs refuse a tag that does not match the packaged version.
+  workflow_dispatch:
+    inputs:
+      # trunk-ignore(checkov/CKV_GHA_7)
+      tag:
+        description: Existing tag to build and attach assets for (e.g. v0.2.5)
+        required: true
+
+# One release build at a time, so two tags cannot race on the same release.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
+
+jobs:
+  arch:
+    name: Arch package
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:base-devel
+    steps:
+      - name: Install build dependencies
+        run: |
+          pacman -Syu --noconfirm --needed git cmake ninja pkgconf \
+            qt6-base qt6-webengine qt6-svg qt6-tools libsecret
+
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Check the tag matches the version
+        run: |
+          pkgver="$(sed -n 's/^pkgver=//p' packaging/PKGBUILD)"
+          if [ "v${pkgver}" != "${TAG}" ]; then
+            echo "Error: tag ${TAG} does not match PKGBUILD pkgver ${pkgver}"
+            exit 1
+          fi
+          # Tags from before the check script existed only have the check above.
+          if [ -x scripts/check-version.sh ]; then
+            scripts/check-version.sh "${TAG}"
+          fi
+
+      # makepkg refuses to run as root.
+      - name: Build package
+        run: |
+          useradd -m builder
+          chown -R builder: "${GITHUB_WORKSPACE}"
+          su builder -c "cd '${GITHUB_WORKSPACE}/packaging' && makepkg --noconfirm"
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: arch
+          path: packaging/*.pkg.tar.zst
+          if-no-files-found: error
+
+  tarball:
+    name: Per-user tarball
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      # The build script comes from the workflow's commit, so tags made before
+      # it existed can still be built.
+      - name: Checkout release tools
+        uses: actions/checkout@v4
+        with:
+          path: .release-tools
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends cmake ninja-build pkg-config \
+            qt6-base-dev qt6-webengine-dev qt6-svg-dev libgl-dev libsecret-1-dev
+
+      - name: Build tarball
+        run: .release-tools/scripts/build-tarball.sh . dist
+
+      - name: Upload tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: tarball
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  publish:
+    name: Publish assets and manifest
+    needs: [arch, tarball]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout release tools
+        uses: actions/checkout@v4
+
+      - name: Download assets
+        uses: actions/download-artifact@v4
+        with:
+          path: assets
+          merge-multiple: true
+
+      - name: Write manifest and checksums
+        working-directory: assets
+        run: |
+          ../scripts/write-manifest.sh "${TAG}" .
+          for f in ./*.pkg.tar.zst ./*.tar.gz; do
+            sha256sum "${f#./}" >"${f}.sha256"
+          done
+          ls -l
+
+      - name: Attach to the release
+        working-directory: assets
+        run: |
+          if ! gh release view "${TAG}" -R "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release create "${TAG}" -R "${GITHUB_REPOSITORY}" --verify-tag \
+              --title "SyncLens ${TAG#v}" --generate-notes
+          fi
+          gh release upload "${TAG}" -R "${GITHUB_REPOSITORY}" --clobber ./*

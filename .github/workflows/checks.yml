@@ -1,0 +1,144 @@
+name: Checks
+# Pre-merge checks. "Build gate" is the single required status check on main,
+# so jobs can be added or renamed here without touching the branch ruleset.
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Same linters and versions as `trunk check` locally (.trunk/trunk.yaml):
+      # actionlint, shellcheck, shfmt, markdownlint, prettier, yamllint, ...
+      - name: Trunk check
+        uses: trunk-io/trunk-action@v1
+        with:
+          check-mode: all
+
+      - name: Versions agree
+        run: scripts/check-version.sh
+
+  arch:
+    name: Build (Arch, latest Qt) and package
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:base-devel
+    steps:
+      - name: Install build dependencies
+        run: |
+          pacman -Syu --noconfirm --needed git cmake ninja pkgconf namcap \
+            qt6-base qt6-webengine qt6-svg qt6-tools libsecret
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # makepkg refuses to run as root.
+      - name: Build package
+        run: |
+          useradd -m builder
+          chown -R builder: "${GITHUB_WORKSPACE}"
+          su builder -c "cd '${GITHUB_WORKSPACE}/packaging' && makepkg --noconfirm"
+
+      - name: namcap
+        working-directory: packaging
+        run: |
+          namcap PKGBUILD
+          namcap ./*.pkg.tar.zst
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: synclens-arch-package
+          path: packaging/*.pkg.tar.zst
+          if-no-files-found: error
+
+  ubuntu:
+    # Ubuntu 24.04 ships Qt 6.4, the oldest version CMakeLists.txt accepts.
+    name: Build (Ubuntu 24.04, Qt 6.4) and per-user install
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends cmake ninja-build pkg-config \
+            qt6-base-dev qt6-webengine-dev qt6-svg-dev libgl-dev libsecret-1-dev
+
+      - name: Build tarball
+        run: scripts/build-tarball.sh . dist
+
+      # Install the tarball through scripts/install.sh exactly as a user
+      # would, from a local release with a manifest, into a scratch home.
+      - name: Per-user install from a local release
+        run: |
+          version="$(cat dist/*.tar.gz | tar -xzO --wildcards '*/VERSION')"
+          scripts/write-manifest.sh "v${version}" dist
+          release="${RUNNER_TEMP}/release"
+          mkdir -p "${release}/latest/download"
+          sed "s#https://github.com/[^\"]*/download/v${version}#file://${PWD}/dist#g" \
+            dist/manifest.json >"${release}/latest/download/manifest.json"
+          export HOME="${RUNNER_TEMP}/home" SYNCLENS_RELEASES_URL="file://${release}"
+          mkdir -p "${HOME}"
+          scripts/install.sh
+          test -x "${HOME}/.local/bin/synclens"
+          grep -q "^Exec=${HOME}/.local/bin/synclens$" "${HOME}/.local/share/applications/synclens.desktop"
+          scripts/install.sh | grep -q "up to date"
+          scripts/install.sh --uninstall
+          test ! -e "${HOME}/.local/bin/synclens"
+
+      - name: Upload tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: synclens-linux-tarball
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  nix:
+    name: Build (Nix flake)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+
+      - name: nix build
+        run: nix build .#synclens --print-build-logs
+
+  gate:
+    name: Build gate
+    if: always()
+    needs: [lint, arch, ubuntu, nix]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every check to succeed
+        env:
+          RESULTS: ${{ toJSON(needs.*.result) }}
+        run: |
+          echo "Job results: ${RESULTS}"
+          if ! jq -e 'length > 0 and all(. == "success")' <<<"${RESULTS}" >/dev/null; then
+            echo "Error: a check did not succeed"
+            exit 1
+          fi
+          echo "All checks succeeded"
