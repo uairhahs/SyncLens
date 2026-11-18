@@ -14,7 +14,7 @@
 #   VERSION
 #
 # The binary links against the system Qt, so build it against the oldest Qt
-# the tarball should run on (CI uses Ubuntu 24.04, Qt 6.4).
+# the tarball should run on (CI uses Debian 13, Qt 6.8).
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")/.." && pwd)"

@@ -7,7 +7,7 @@
 # Two ways to install, picked automatically:
 #   Arch package   on Arch (pacman), via sudo pacman -U. Default there.
 #   Per-user       anywhere else, or with --user: into ~/.local, no root.
-#                  Needs the distribution's Qt 6.4+ with QtWebEngine.
+#                  Needs the distribution's Qt 6.8+ with QtWebEngine.
 #
 # Options:
 #   --user            per-user install even on Arch
@@ -230,7 +230,7 @@ install_user() {
 	root="$(find "${tmp}" -mindepth 1 -maxdepth 1 -type d -name 'synclens-*' -print -quit)"
 	[[ -x "${root}/bin/synclens" ]] || die "the tarball has no bin/synclens"
 
-	# The binary uses the system's Qt: check every library resolves (Qt 6.4+,
+	# The binary uses the system's Qt: check every library resolves (Qt 6.8+,
 	# QtWebEngine, libsecret, glibc) before replacing anything.
 	local libs missing
 	libs="$(ldd "${root}/bin/synclens" 2>&1 || true)"
@@ -238,9 +238,9 @@ install_user() {
 	if [[ -n ${missing} ]]; then
 		say "error: SyncLens needs libraries this system lacks:" >&2
 		say "${missing}" >&2
-		say "Install Qt 6.4 or later with QtWebEngine and QtSvg, and libsecret, for example:" >&2
-		say "  Debian/Ubuntu: sudo apt install libqt6webenginewidgets6 libqt6svg6 libsecret-1-0" >&2
-		say "  Fedora:        sudo dnf install qt6-qtwebengine qt6-qtsvg libsecret" >&2
+		say "Install Qt 6.8 or later with QtWebEngine and QtSvg, and libsecret, for example:" >&2
+		say "  Debian 13+, Ubuntu 25.10+: sudo apt install libqt6webenginewidgets6 libqt6svg6 libsecret-1-0" >&2
+		say "  Fedora:                    sudo dnf install qt6-qtwebengine qt6-qtsvg libsecret" >&2
 		exit 1
 	fi
 

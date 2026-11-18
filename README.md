@@ -11,7 +11,7 @@ SyncLens gives Resilio Sync a proper Linux desktop home (system tray, a dedicate
 ## Requirements
 
 - Resilio Sync running locally or reachable over the network (any installation method)
-- Qt 6.4 or later with QtWebEngine
+- Qt 6.8 or later with QtWebEngine (Debian 13, Ubuntu 25.10, Fedora 41 or later, Arch; on older distributions such as Ubuntu 24.04, use the [Nix package](#nix), which brings its own Qt)
 - KDE / GNOME or any desktop with a system tray
 
 ---
@@ -29,7 +29,7 @@ curl -fsSL https://raw.githubusercontent.com/uairhahs/SyncLens/main/scripts/inst
 Run the same command again whenever SyncLens tells you a new version is out. From a clone, run `scripts/install.sh` instead. The script reads the latest [release](https://github.com/uairhahs/SyncLens/releases)'s `manifest.json`, checks the download against the SHA-256 listed there, and installs it one of two ways:
 
 - **On Arch** it installs the Arch package with `sudo pacman -U`, so pacman tracks the files and dependencies. If SyncLens was previously installed with `cmake --install`, the package takes over those files.
-- **On other distributions**, or with `--user` on Arch, it installs into `~/.local` for your user only, with no root. This needs your distribution's Qt 6.4 or later with QtWebEngine and QtSvg, plus libsecret; the script checks they are present before installing. For example, on Debian/Ubuntu 24.04 or later: `sudo apt install libqt6webenginewidgets6 libqt6svg6 libsecret-1-0`.
+- **On other distributions**, or with `--user` on Arch, it installs into `~/.local` for your user only, with no root. This needs your distribution's Qt 6.8 or later with QtWebEngine and QtSvg, plus libsecret; the script checks they are present before installing. For example, on Debian 13 or Ubuntu 25.10 or later: `sudo apt install libqt6webenginewidgets6 libqt6svg6 libsecret-1-0`.
 
 | Option             | Effect                                        |
 | ------------------ | --------------------------------------------- |
@@ -78,7 +78,7 @@ The `nix` command needs the `nix-command` and `flakes` experimental features ena
 
 ### From source
 
-Install the build dependencies. On Debian/Ubuntu (24.04 or later):
+Install the build dependencies. On Debian 13 or Ubuntu 25.10 or later:
 
 ```bash
 sudo apt install cmake ninja-build pkg-config qt6-base-dev qt6-webengine-dev qt6-svg-dev libgl-dev libsecret-1-dev
