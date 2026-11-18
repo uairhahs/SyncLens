@@ -30,3 +30,6 @@ packaging/*.log
 
 # release assets from scripts/build-tarball.sh
 /dist/
+
+# local-only tooling (README screenshot generator)
+/.github/scripts/
