@@ -87,15 +87,13 @@ jobs:
     # Ubuntu 24.04 ships Qt 6.4, the oldest version CMakeLists.txt accepts.
     name: Build (Ubuntu 24.04, Qt 6.4) and per-user install
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Install build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends cmake ninja-build pkg-config \
-            qt6-base-dev qt6-webengine-dev qt6-svg-dev libgl-dev libsecret-1-dev patchelf
+        uses: ./.github/actions/ubuntu-deps
 
       - name: Build tarball
         run: scripts/build-tarball.sh . dist
