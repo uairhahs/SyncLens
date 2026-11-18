@@ -18,6 +18,10 @@ connection health at a glance and secure credential storage.
 
 [Installation](#installation) · [Features](#features) · [Themes](#themes) · [Multiple instances](#multiple-instances) · [Contributing](#contributing)
 
+<br><br>
+
+<img src="docs/images/synclens-window.png" alt="The SyncLens window showing the Resilio Sync WebUI with the Catppuccin Mocha theme" width="820">
+
 </div>
 
 SyncLens wraps the Resilio Sync WebUI without replacing or reimplementing anything Resilio already does. Install it, point it at your WebUI, and Resilio Sync behaves like any other desktop app.
