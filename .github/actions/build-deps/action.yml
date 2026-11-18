@@ -1,0 +1,44 @@
+name: Install build dependencies
+description: >-
+  Installs SyncLens's build dependencies with apt inside a Debian container
+  (run as root, as container jobs are), keeping the downloaded packages in the
+  Actions cache so a slow mirror only costs time when the package list or the
+  Debian release changes.
+
+runs:
+  using: composite
+  steps:
+    - name: Work out the cache key
+      id: key
+      shell: bash
+      env:
+        # curl and ca-certificates are for install.sh; patchelf for the
+        # missing-library test.
+        PACKAGES: >-
+          cmake ninja-build pkg-config g++ qt6-base-dev qt6-webengine-dev
+          qt6-svg-dev libgl-dev libsecret-1-dev patchelf curl ca-certificates
+      run: |
+        . /etc/os-release
+        echo "packages=${PACKAGES}" >>"${GITHUB_OUTPUT}"
+        hash="$(sha256sum <<<"${PACKAGES}")"
+        echo "key=apt-${ID}-${VERSION_CODENAME}-${RUNNER_ARCH}-${hash:0:16}" >>"${GITHUB_OUTPUT}"
+        echo "prefix=apt-${ID}-${VERSION_CODENAME}-${RUNNER_ARCH}-" >>"${GITHUB_OUTPUT}"
+
+    - name: Restore downloaded packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/apt-archives
+        key: ${{ steps.key.outputs.key }}
+        restore-keys: ${{ steps.key.outputs.prefix }}
+
+    - name: Install packages
+      shell: bash
+      env:
+        PACKAGES: ${{ steps.key.outputs.packages }}
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        mkdir -p /var/cache/apt-archives/partial
+        apt-get update
+        # shellcheck disable=SC2086 # PACKAGES is a word list
+        apt-get install -y --no-install-recommends \
+          -o Dir::Cache::Archives=/var/cache/apt-archives ${PACKAGES}

@@ -3,7 +3,7 @@ name: Release
 # GitHub release (created with generated notes if it does not exist yet):
 #
 #   synclens-X.Y.Z-1-x86_64.pkg.tar.zst  Arch package (Arch container)
-#   synclens-X.Y.Z-linux-x86_64.tar.gz   per-user tarball (Ubuntu 24.04, Qt 6.4)
+#   synclens-X.Y.Z-linux-x86_64.tar.gz   per-user tarball (Debian 13, Qt 6.8)
 #   manifest.json                        version, URL and SHA-256 per target
 #
 # scripts/install.sh reads manifest.json from the latest release.
@@ -126,7 +126,9 @@ jobs:
     name: Per-user tarball
     needs: tag
     if: needs.tag.outputs.tag != ''
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
+    # Built against the oldest supported Qt; see CONTRIBUTING.md.
+    container: debian:trixie
     timeout-minutes: 30
     env:
       TAG: ${{ needs.tag.outputs.tag }}
@@ -144,7 +146,7 @@ jobs:
           path: .release-tools
 
       - name: Install build dependencies
-        uses: ./.release-tools/.github/actions/ubuntu-deps
+        uses: ./.release-tools/.github/actions/build-deps
 
       - name: Build tarball
         run: .release-tools/scripts/build-tarball.sh . dist

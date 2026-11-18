@@ -83,17 +83,19 @@ jobs:
           path: packaging/*.pkg.tar.zst
           if-no-files-found: error
 
-  ubuntu:
-    # Ubuntu 24.04 ships Qt 6.4, the oldest version CMakeLists.txt accepts.
-    name: Build (Ubuntu 24.04, Qt 6.4) and per-user install
-    runs-on: ubuntu-24.04
+  debian:
+    # Debian 13 ships Qt 6.8, the oldest version CMakeLists.txt accepts and
+    # the oldest Qt of any maintained distribution.
+    name: Build (Debian 13, Qt 6.8) and per-user install
+    runs-on: ubuntu-latest
+    container: debian:trixie
     timeout-minutes: 30
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Install build dependencies
-        uses: ./.github/actions/ubuntu-deps
+        uses: ./.github/actions/build-deps
 
       - name: Build tarball
         run: scripts/build-tarball.sh . dist
@@ -168,7 +170,7 @@ jobs:
   gate:
     name: Build gate
     if: always()
-    needs: [lint, arch, ubuntu, nix]
+    needs: [lint, arch, debian, nix]
     runs-on: ubuntu-latest
     steps:
       - name: Require every check to succeed
