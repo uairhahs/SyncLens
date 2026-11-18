@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "SingleInstance.h"
 #include "SyncInstance.h"
 #include "UpdateChecker.h"
 #include "theme/ThemeManager.h"
@@ -33,6 +34,7 @@ Application::Application(int &argc, char **argv)
     // Use the theme's icon when present so icon themes can restyle it.
     setWindowIcon(QIcon::fromTheme("synclens", QIcon(":/icons/synclens.svg")));
 
+    m_single = new SingleInstance(this);
     m_settings = new SettingsManager(this);
 
     // One tray icon for the whole app, whatever the number of instances.
@@ -89,6 +91,17 @@ Application::~Application()
 
 int Application::run()
 {
+    // Another copy is already running: it has been asked to show its window.
+    if (!m_single->claim())
+        return 0;
+    connect(m_single, &SingleInstance::activationRequested, this, [this](const QString &token)
+            {
+        // On Wayland a window may only take focus with the launcher's token;
+        // Qt reads it from the environment when the window activates.
+        if (!token.isEmpty())
+            qputenv("XDG_ACTIVATION_TOKEN", token.toUtf8());
+        switchTo(m_settings->defaultInstanceId()); });
+
     createInstances();
     syncTrayInstances();
     m_tray->show();

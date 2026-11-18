@@ -127,6 +127,7 @@ jobs:
     needs: tag
     if: needs.tag.outputs.tag != ''
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     env:
       TAG: ${{ needs.tag.outputs.tag }}
     steps:
@@ -143,10 +144,7 @@ jobs:
           path: .release-tools
 
       - name: Install build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends cmake ninja-build pkg-config \
-            qt6-base-dev qt6-webengine-dev qt6-svg-dev libgl-dev libsecret-1-dev
+        uses: ./.release-tools/.github/actions/ubuntu-deps
 
       - name: Build tarball
         run: .release-tools/scripts/build-tarball.sh . dist

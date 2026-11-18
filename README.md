@@ -125,6 +125,7 @@ This installs the `synclens` binary, desktop entry, app icon and systemd user se
 - **Icon themes**: your icon theme can restyle the app and tray icons (see [Icon themes](#icon-themes))
 - **Update checks**: a daily check against GitHub releases, plus **Help > Check for Updates**
 - **Start minimized and launch on login**: start straight to the tray, via an XDG autostart entry or the optional systemd user service
+- **One copy at a time**: launching SyncLens while it runs, from the menu, autostart or the service, shows the running window instead of starting a second copy
 - **Window geometry**: remembers each instance window's size and position
 - **Packaging**: Arch `PKGBUILD` and a Nix flake
 

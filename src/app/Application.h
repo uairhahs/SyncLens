@@ -6,6 +6,7 @@
 #include <QTimer>
 #include "settings/SettingsManager.h"
 
+class SingleInstance;
 class SyncInstance;
 class UpdateChecker;
 class ThemeManager;
@@ -38,6 +39,7 @@ private:
     void onUpToDate(const QString &latest);
     void onUpdateCheckFailed(const QString &error);
 
+    SingleInstance *m_single;
     SettingsManager *m_settings;
     QList<SyncInstance *> m_instances;
     TrayController *m_tray;

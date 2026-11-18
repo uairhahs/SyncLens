@@ -27,6 +27,7 @@ FILES_LIST="${STATE_DIR}/installed-files"
 
 TAG=""
 FORCE=0
+NEW_ICON_DIRS=0
 MODE=""
 UNINSTALL=0
 
@@ -77,6 +78,36 @@ refresh_user_caches() {
 	fi
 	if command -v systemctl >/dev/null; then
 		systemctl --user daemon-reload 2>/dev/null || true
+	fi
+}
+
+# Icon folders the install puts files in.
+icon_dirs() {
+	local base="${DATA_HOME}/icons/hicolor"
+	[[ ${MODE} == arch ]] && base=/usr/share/icons/hicolor
+	printf '%s\n' "${base}/scalable/apps" "${base}/scalable/status"
+}
+
+# A running Plasma caches icon lookups, misses included, so without this the
+# tray and taskbar icons stay blank until the next login.
+refresh_plasma() {
+	pgrep -u "${UID}" -x plasmashell >/dev/null 2>&1 || return 0
+	local sycoca
+	for sycoca in kbuildsycoca6 kbuildsycoca5; do
+		if command -v "${sycoca}" >/dev/null; then
+			"${sycoca}" >/dev/null 2>&1 || true
+			break
+		fi
+	done
+	if command -v dbus-send >/dev/null; then
+		dbus-send --session --type=signal /KIconLoader org.kde.KIconLoader.iconChanged int32:0 2>/dev/null || true
+	fi
+	# Plasma picks the icon folders to search when it starts, so the signal
+	# above can't reach icons in a folder this install created.
+	if [[ ${NEW_ICON_DIRS} -eq 1 ]]; then
+		say "==> Plasma only searches icon folders that existed when it started, so the"
+		say "    SyncLens icons may be blank until you log in again, or run:"
+		say "    systemctl --user restart plasma-plasmashell.service"
 	fi
 }
 
@@ -261,5 +292,10 @@ if [[ -n ${have} ]]; then
 else
 	say "==> Installing SyncLens ${want} (${MODE})"
 fi
+icon_paths="$(icon_dirs)"
+while read -r dir; do
+	[[ -d ${dir} ]] || NEW_ICON_DIRS=1
+done <<<"${icon_paths}"
 if [[ ${MODE} == arch ]]; then install_arch; else install_user; fi
+refresh_plasma
 say "==> SyncLens ${want} is installed."
