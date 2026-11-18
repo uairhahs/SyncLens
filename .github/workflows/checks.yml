@@ -28,10 +28,14 @@ jobs:
 
       # Same linters and versions as `trunk check` locally (.trunk/trunk.yaml):
       # actionlint, shellcheck, shfmt, markdownlint, prettier, yamllint, ...
+      # Only the files a pull request (or push) changes are checked, with
+      # `trunk check --ci`, and only the linters they need are downloaded:
+      # the full tool cache is over 300 MB, more than a changed-files run
+      # fetches.
       - name: Trunk check
         uses: trunk-io/trunk-action@v1
         with:
-          check-mode: all
+          cache: false
 
       - name: Versions agree
         run: scripts/check-version.sh

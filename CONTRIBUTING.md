@@ -17,7 +17,7 @@ Commit subjects follow the existing style: `feat:`, `fix:`, `style:`, `docs:`, `
 
 | Job                                            | What it checks                                                                                                                                        |
 | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Lint                                           | `trunk check` on all files (same linters as locally), and that version numbers agree                                                                  |
+| Lint                                           | `trunk check --ci` on the files the change touches (same linters as locally), and that version numbers agree                                          |
 | Build (Arch, latest Qt) and package            | `makepkg` builds the Arch package from the checkout, then `namcap` reviews it                                                                         |
 | Build (Debian 13, Qt 6.8) and per-user install | Builds the per-user tarball against Qt 6.8, the oldest supported, in a Debian 13 container, and installs, updates and uninstalls it with `install.sh` |
 | Build (Nix flake)                              | `nix build .#synclens`                                                                                                                                |
