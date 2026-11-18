@@ -1,10 +1,45 @@
+<div align="center">
+
+<img src="resources/icons/synclens.svg" alt="SyncLens icon" width="128" height="128">
+
 # SyncLens
 
+<h3>A native Linux desktop home for Resilio Sync</h3>
+
+An unofficial Qt wrapper for the Resilio Sync WebUI: system tray, a dedicated app window,<br>
+connection health at a glance and secure credential storage.
+
+[![Checks](https://github.com/uairhahs/SyncLens/actions/workflows/checks.yml/badge.svg?branch=main)](https://github.com/uairhahs/SyncLens/actions/workflows/checks.yml)
+[![Latest release](https://img.shields.io/github/v/release/uairhahs/SyncLens?label=release&color=1C7CF0)](https://github.com/uairhahs/SyncLens/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Platform: Linux](https://img.shields.io/badge/platform-Linux-0B1B3A?logo=linux&logoColor=white)](#installation)
+[![Qt 6.4+](https://img.shields.io/badge/Qt-6.4%2B-41CD52?logo=qt&logoColor=white)](#requirements)
+[![Nix flake](https://img.shields.io/badge/nix-flake-5277C3?logo=nixos&logoColor=white)](#nix)
 
-> An unofficial Qt desktop wrapper for the Resilio Sync WebUI on Linux
+[Installation](#installation) · [Features](#features) · [Themes](#themes) · [Multiple instances](#multiple-instances) · [Contributing](#contributing)
 
-SyncLens gives Resilio Sync a proper Linux desktop home (system tray, a dedicated app window, connection health indicator and secure credential storage) without replacing or reimplementing anything Resilio already does.
+</div>
+
+SyncLens wraps the Resilio Sync WebUI without replacing or reimplementing anything Resilio already does. Install it, point it at your WebUI, and Resilio Sync behaves like any other desktop app.
+
+---
+
+## Features
+
+- **Embedded WebUI**: the full Resilio Sync interface in a native window, no browser tab needed
+- **Multiple instances**: connect to several Resilio Sync servers, local or remote, each with its own isolated browser session (see [Multiple instances](#multiple-instances))
+- **One tray icon**: left-click opens the default instance; right-click lists every instance with a coloured status dot, plus Quit
+- **Health monitor**: detects when Resilio is stopped or unreachable and shows a clear offline page
+- **Reconnect and recovery**: **View > Reconnect** starts a fresh WebUI renderer, and SyncLens does this on its own after an outage or renderer crash
+- **Credential storage**: passwords kept per instance in GNOME Keyring or KWallet via libsecret (when available)
+- **Session persistence**: stays signed in across restarts using a persistent browser profile per instance
+- **WebUI themes**: Catppuccin and other bundled palettes, custom themes and a user stylesheet (see [Themes](#themes))
+- **Icon themes**: your icon theme can restyle the app and tray icons (see [Icon themes](#icon-themes))
+- **Update checks**: a daily check against GitHub releases, plus **Help > Check for Updates**
+- **Start minimized and launch on login**: start straight to the tray, via an XDG autostart entry or the optional systemd user service
+- **One copy at a time**: launching SyncLens while it runs, from the menu, autostart or the service, shows the running window instead of starting a second copy
+- **Window geometry**: remembers each instance window's size and position
+- **Packaging**: Arch `PKGBUILD` and a Nix flake
 
 ---
 
@@ -112,33 +147,14 @@ This installs the `synclens` binary, desktop entry, app icon and systemd user se
 
 ---
 
-## Features
-
-- **Embedded WebUI**: the full Resilio Sync interface in a native window, no browser tab needed
-- **Multiple instances**: connect to several Resilio Sync servers, local or remote, each with its own isolated browser session (see [Multiple instances](#multiple-instances))
-- **One tray icon**: left-click opens the default instance; right-click lists every instance with a coloured status dot, plus Quit
-- **Health monitor**: detects when Resilio is stopped or unreachable and shows a clear offline page
-- **Reconnect and recovery**: **View > Reconnect** starts a fresh WebUI renderer, and SyncLens does this on its own after an outage or renderer crash
-- **Credential storage**: passwords kept per instance in GNOME Keyring or KWallet via libsecret (when available)
-- **Session persistence**: stays signed in across restarts using a persistent browser profile per instance
-- **WebUI themes**: Catppuccin and other bundled palettes, custom themes and a user stylesheet (see [Themes](#themes))
-- **Icon themes**: your icon theme can restyle the app and tray icons (see [Icon themes](#icon-themes))
-- **Update checks**: a daily check against GitHub releases, plus **Help > Check for Updates**
-- **Start minimized and launch on login**: start straight to the tray, via an XDG autostart entry or the optional systemd user service
-- **One copy at a time**: launching SyncLens while it runs, from the menu, autostart or the service, shows the running window instead of starting a second copy
-- **Window geometry**: remembers each instance window's size and position
-- **Packaging**: Arch `PKGBUILD` and a Nix flake
-
----
-
 ## Tray icon states
 
-| Colour | Centre | Meaning                                            |
-| ------ | ------ | -------------------------------------------------- |
-| Green  | Dot    | Resilio Sync is running and the WebUI is reachable |
-| Amber  | Ring   | Connecting or status unknown                       |
-| Blue   | Pause  | Daemon is stopped                                  |
-| Red    | Cross  | WebUI is not responding or an error occurred       |
+|                                               Icon                                               | Colour | Centre | Meaning                                            |
+| :----------------------------------------------------------------------------------------------: | ------ | ------ | -------------------------------------------------- |
+|    <img src="resources/icons/synclens-tray-healthy.svg" alt="healthy" width="24" height="24">    | Green  | Dot    | Resilio Sync is running and the WebUI is reachable |
+| <img src="resources/icons/synclens-tray-connecting.svg" alt="connecting" width="24" height="24"> | Amber  | Ring   | Connecting or status unknown                       |
+|    <img src="resources/icons/synclens-tray-stopped.svg" alt="stopped" width="24" height="24">    | Blue   | Pause  | Daemon is stopped                                  |
+|      <img src="resources/icons/synclens-tray-error.svg" alt="error" width="24" height="24">      | Red    | Cross  | WebUI is not responding or an error occurred       |
 
 Icons are SVGs in `resources/icons/`; run `uv run resources/icons/generate_icons.py` to regenerate them.
 

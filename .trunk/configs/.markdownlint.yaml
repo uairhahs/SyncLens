@@ -1,2 +1,8 @@
 # Prettier friendly markdownlint config (all formatting rules disabled)
 extends: markdownlint/style/prettier
+
+# The README opens with a centred HTML header (icon, title, badges), and its
+# tray-state table shows the icons themselves. Allow only the tags that needs.
+MD033:
+  allowed_elements: [div, img, br, h3]
+MD041: false
