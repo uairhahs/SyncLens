@@ -13,7 +13,7 @@ connection health at a glance and secure credential storage.
 [![Latest release](https://img.shields.io/github/v/release/uairhahs/SyncLens?label=release&color=1C7CF0)](https://github.com/uairhahs/SyncLens/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform: Linux](https://img.shields.io/badge/platform-Linux-0B1B3A?logo=linux&logoColor=white)](#installation)
-[![Qt 6.4+](https://img.shields.io/badge/Qt-6.4%2B-41CD52?logo=qt&logoColor=white)](#requirements)
+[![Qt 6.8+](https://img.shields.io/badge/Qt-6.8%2B-41CD52?logo=qt&logoColor=white)](#requirements)
 [![Nix flake](https://img.shields.io/badge/nix-flake-5277C3?logo=nixos&logoColor=white)](#nix)
 
 [Installation](#installation) · [Features](#features) · [Themes](#themes) · [Multiple instances](#multiple-instances) · [Contributing](#contributing)
