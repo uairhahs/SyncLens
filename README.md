@@ -15,6 +15,7 @@ connection health at a glance and secure credential storage.
 [![Platform: Linux](https://img.shields.io/badge/platform-Linux-0B1B3A?logo=linux&logoColor=white)](#installation)
 [![Qt 6.8+](https://img.shields.io/badge/Qt-6.8%2B-41CD52?logo=qt&logoColor=white)](#requirements)
 [![Nix flake](https://img.shields.io/badge/nix-flake-5277C3?logo=nixos&logoColor=white)](#nix)
+![Views](https://visitor-badge.laobi.icu/badge?page_id=uairhahs.SyncLens&left_text=views)
 
 [Installation](#installation) · [Features](#features) · [Themes](#themes) · [Multiple instances](#multiple-instances) · [Contributing](#contributing)
 
