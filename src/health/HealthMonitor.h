@@ -17,8 +17,9 @@ public:
     void setIntervalMs(int ms);
     void start();
     void stop();
-    // Probe immediately instead of waiting for the next tick.
-    void probeNow() { probe(); }
+    // Probe immediately on a fresh connection instead of waiting for the
+    // next tick.
+    void probeNow();
 
     HealthState state() const { return m_state; }
 
