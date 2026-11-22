@@ -11,6 +11,7 @@ connection health at a glance and secure credential storage.
 
 [![Checks](https://github.com/uairhahs/SyncLens/actions/workflows/checks.yml/badge.svg?branch=main)](https://github.com/uairhahs/SyncLens/actions/workflows/checks.yml)
 [![Latest release](https://img.shields.io/github/v/release/uairhahs/SyncLens?label=release&color=1C7CF0)](https://github.com/uairhahs/SyncLens/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/uairhahs/SyncLens/total?color=1C7CF0)](https://github.com/uairhahs/SyncLens/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform: Linux](https://img.shields.io/badge/platform-Linux-0B1B3A?logo=linux&logoColor=white)](#installation)
 [![Qt 6.8+](https://img.shields.io/badge/Qt-6.8%2B-41CD52?logo=qt&logoColor=white)](#requirements)
