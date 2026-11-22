@@ -49,8 +49,6 @@ Application::Application(int &argc, char **argv)
     };
     connect(m_tray, &TrayController::openWindowRequested,
             this, &Application::switchTo);
-    connect(m_tray, &TrayController::openInBrowserRequested,
-            this, forInstance(&SyncInstance::openInBrowser));
     connect(m_tray, &TrayController::refreshRequested,
             this, forInstance(&SyncInstance::refreshStatus));
     connect(m_tray, &TrayController::reconnectRequested,

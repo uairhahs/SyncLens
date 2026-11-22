@@ -38,7 +38,6 @@ public:
 
 signals:
     void openWindowRequested(const QString &id);
-    void openInBrowserRequested(const QString &id);
     void refreshRequested(const QString &id);
     void reconnectRequested(const QString &id);
     void notificationClicked(const QString &url);

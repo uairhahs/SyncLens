@@ -18,9 +18,6 @@ public:
     void reconnect();
     void setThemeScript(const QString &source);
 
-public slots:
-    void openInBrowser();
-
 signals:
     void instanceConfigChanged(const InstanceConfig &config);
     void manageInstancesRequested();

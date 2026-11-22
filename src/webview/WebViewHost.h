@@ -37,7 +37,7 @@ public:
     void setThemeScript(const QString &source);
 
 signals:
-    void openInBrowserRequested(const QString &url);
+    void reconnectRequested();
 
 private:
     void onAuthRequired(const QUrl &requestUrl, QAuthenticator *authenticator);
@@ -56,7 +56,7 @@ private:
     QWebEngineView *m_webView;
     QWidget *m_offlinePage;
     QLabel *m_offlineLabel;
-    QPushButton *m_openBrowserButton;
+    QPushButton *m_reconnectButton;
     QString m_currentUrl;
 
     // Per main-frame navigation: stored credentials are offered once, then

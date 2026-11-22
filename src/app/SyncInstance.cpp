@@ -2,8 +2,6 @@
 #include "MainWindow.h"
 #include "health/HealthMonitor.h"
 
-#include <QDesktopServices>
-#include <QUrl>
 
 SyncInstance::SyncInstance(InstanceConfig config,
                            SettingsManager *globalSettings,
@@ -70,11 +68,6 @@ void SyncInstance::reconnect()
 {
   m_window->reconnect();
   m_health->probeNow();
-}
-
-void SyncInstance::openInBrowser()
-{
-  QDesktopServices::openUrl(QUrl(m_config.url));
 }
 
 void SyncInstance::refreshStatus()

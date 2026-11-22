@@ -34,7 +34,7 @@ SyncLens wraps the Resilio Sync WebUI without replacing or reimplementing anythi
 - **Multiple instances**: connect to several Resilio Sync servers, local or remote, each with its own isolated browser session (see [Multiple instances](#multiple-instances))
 - **One tray icon**: left-click opens the default instance; right-click lists every instance with a coloured status dot, plus Quit
 - **Health monitor**: detects when Resilio is stopped or unreachable and shows a clear offline page
-- **Reconnect and recovery**: **View > Reconnect** starts a fresh WebUI renderer, and SyncLens does this on its own after an outage or renderer crash
+- **Reconnect and recovery**: **Menu > Reconnect** starts a fresh WebUI renderer, and SyncLens does this on its own after an outage or renderer crash
 - **Credential storage**: passwords kept per instance in GNOME Keyring or KWallet via libsecret (when available)
 - **Session persistence**: stays signed in across restarts using a persistent browser profile per instance
 - **WebUI themes**: Catppuccin and other bundled palettes, custom themes and a user stylesheet (see [Themes](#themes))
@@ -146,7 +146,7 @@ This installs the `synclens` binary, desktop entry, app icon and systemd user se
 ## First launch
 
 1. SyncLens starts and checks whether Resilio Sync is reachable at `http://127.0.0.1:8888/gui/`.
-2. If your WebUI is on a different address, go to **File > Settings** and update the URL.
+2. If your WebUI is on a different address, go to **Menu > Settings** and update the URL.
 3. When Resilio requires a password, a native sign-in dialog appears. Check **Remember password** to store it securely in your system keychain; you will not be asked again unless the password changes.
 
 ---
@@ -180,7 +180,7 @@ The installed tray icons use KDE's `current-color-scheme` stylesheet, so Plasma 
 
 ## Themes
 
-**File > Settings > WebUI theme** recolours the Resilio WebUI. Bundled themes:
+**Menu > Settings > WebUI theme** recolours the Resilio WebUI. Bundled themes:
 
 - Catppuccin Latte, Frappé, Macchiato and Mocha
 - Dracula, Nord, Tokyo Night, Rosé Pine
@@ -221,7 +221,7 @@ Resilio's stylesheets hard-code every colour, so a theme is a palette rather tha
 
 ## Settings
 
-Open **File > Settings** to configure:
+Open **Menu > Settings** to configure:
 
 - **Name**: label shown in the window title and tray tooltip for this instance
 - **WebUI URL**: change if Resilio is bound to a non-default address or port
@@ -231,11 +231,11 @@ Open **File > Settings** to configure:
 - **WebUI theme**: recolour the WebUI (see [Themes](#themes))
 - **Check for updates daily**: ask GitHub once a day whether a newer release exists, and notify once per new version. **Help > Check for Updates** checks on demand
 
-**View > Reconnect** (F5) reloads the WebUI in a fresh renderer. SyncLens does this on its own when the WebUI comes back after an outage or the renderer crashes.
+**Menu > Reconnect** (F5) reloads the WebUI in a fresh renderer. SyncLens does this on its own when the WebUI comes back after an outage or the renderer crashes.
 
 ## Multiple instances
 
-**File > Manage Instances** adds, edits and removes Resilio Sync connections. Pressing **OK** switches to the highlighted instance. Each instance has its own window and browser session, and they share one tray icon. Only one instance window is open at a time: switching to another closes the current one to the tray.
+**Menu > Manage Instances** adds, edits and removes Resilio Sync connections. Pressing **OK** switches to the highlighted instance. Each instance has its own window and browser session, and they share one tray icon. Only one instance window is open at a time: switching to another closes the current one to the tray.
 
 - Left-click the tray icon to open the default instance. Select an instance and click **Set as Default** to choose which one.
 - Right-click for the menu, which lists every instance with a coloured status dot; choose one to switch to it.
