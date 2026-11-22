@@ -5,7 +5,7 @@
 post_install() {
     cat <<'EOF'
 ==> Start SyncLens from your application menu, or run: synclens
-==> To start it at login, tick "Launch on login" in File > Settings,
+==> To start it at login, tick "Launch on login" in Menu > Settings,
     or use the systemd user service: systemctl --user enable --now synclens.service
 EOF
 }

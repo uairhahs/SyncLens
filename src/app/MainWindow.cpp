@@ -11,8 +11,6 @@
 #include <QMenuBar>
 #include <QMenu>
 #include <QAction>
-#include <QDesktopServices>
-#include <QUrl>
 #include <QKeySequence>
 
 MainWindow::MainWindow(SettingsManager *settings, const InstanceConfig &config,
@@ -27,9 +25,8 @@ MainWindow::MainWindow(SettingsManager *settings, const InstanceConfig &config,
     setCentralWidget(m_webViewHost);
     m_webViewHost->setUrl(m_config.url);
 
-    connect(m_webViewHost, &WebViewHost::openInBrowserRequested,
-            this, [](const QString &url)
-            { QDesktopServices::openUrl(QUrl(url)); });
+    connect(m_webViewHost, &WebViewHost::reconnectRequested,
+            this, &MainWindow::reconnectRequested);
 
     setupMenuBar();
     m_webViewHost->showOfflinePage(tr("Connecting to Resilio Sync..."));
@@ -44,9 +41,9 @@ void MainWindow::updateWindowTitle()
 
 void MainWindow::setupMenuBar()
 {
-    auto *fileMenu = menuBar()->addMenu(tr("&File"));
+    auto *mainMenu = menuBar()->addMenu(tr("&Menu"));
 
-    auto *settingsAction = fileMenu->addAction(tr("&Settings..."));
+    auto *settingsAction = mainMenu->addAction(tr("&Settings..."));
     connect(settingsAction, &QAction::triggered, this, [this]()
             {
         SettingsDialog dlg(m_settings, &m_config, this);
@@ -57,19 +54,18 @@ void MainWindow::setupMenuBar()
             emit instanceConfigChanged(m_config);
         } });
 
-    auto *manageAction = fileMenu->addAction(tr("&Manage Instances..."));
+    auto *manageAction = mainMenu->addAction(tr("&Manage Instances..."));
     connect(manageAction, &QAction::triggered,
             this, &MainWindow::manageInstancesRequested);
 
-    fileMenu->addSeparator();
-    auto *quitAction = fileMenu->addAction(tr("&Quit"));
-    connect(quitAction, &QAction::triggered, qApp, &QApplication::quit);
-
-    auto *viewMenu = menuBar()->addMenu(tr("&View"));
-    auto *reconnectAction = viewMenu->addAction(tr("&Reconnect"));
+    auto *reconnectAction = mainMenu->addAction(tr("&Reconnect"));
     reconnectAction->setShortcut(QKeySequence::Refresh);
     connect(reconnectAction, &QAction::triggered,
             this, &MainWindow::reconnectRequested);
+
+    mainMenu->addSeparator();
+    auto *quitAction = mainMenu->addAction(tr("&Quit"));
+    connect(quitAction, &QAction::triggered, qApp, &QApplication::quit);
 
     auto *helpMenu = menuBar()->addMenu(tr("&Help"));
     auto *updatesAction = helpMenu->addAction(tr("Check for &Updates..."));
@@ -151,11 +147,6 @@ void MainWindow::applyHealthState(HealthState state)
         }
         m_webViewHost->showOfflinePage(msg);
     }
-}
-
-void MainWindow::openInBrowser()
-{
-    QDesktopServices::openUrl(QUrl(m_config.url));
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)

@@ -31,7 +31,6 @@ public:
 
   void showWindow();
   void hideWindow(); // close to tray, as the window's close button does
-  void openInBrowser();
   void refreshStatus();
   void reconnect();
   void setThemeScript(const QString &source);

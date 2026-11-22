@@ -184,9 +184,6 @@ void TrayController::addInstanceActions(QMenu *menu, const QString &id)
     connect(menu->addAction(tr("Open SyncLens")), &QAction::triggered,
             this, [this, id]()
             { emit openWindowRequested(id); });
-    connect(menu->addAction(tr("Open in Browser")), &QAction::triggered,
-            this, [this, id]()
-            { emit openInBrowserRequested(id); });
     connect(menu->addAction(tr("Refresh Status")), &QAction::triggered,
             this, [this, id]()
             { emit refreshRequested(id); });

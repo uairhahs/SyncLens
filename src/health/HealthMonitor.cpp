@@ -40,6 +40,13 @@ void HealthMonitor::stop()
     m_timer.stop();
 }
 
+void HealthMonitor::probeNow()
+{
+    if (!m_probeInFlight)
+        m_nam.clearConnectionCache();
+    probe();
+}
+
 void HealthMonitor::probe()
 {
     if (m_probeInFlight || m_url.isEmpty())
@@ -70,6 +77,12 @@ void HealthMonitor::onReplyFinished(QNetworkReply *reply)
     } else {
         setState(HealthState::Unreachable);
     }
+
+    // Qt reuses open connections, so a connection made while DNS pointed
+    // elsewhere (for example before a VPN came up) would be probed forever.
+    // After a failure, drop it so the next probe resolves and connects afresh.
+    if (m_state != HealthState::Running)
+        m_nam.clearConnectionCache();
 }
 
 void HealthMonitor::setState(HealthState s)

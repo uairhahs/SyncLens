@@ -45,13 +45,13 @@ WebViewHost::WebViewHost(const QString &profileId, QWidget *parent)
     m_offlineLabel->setAlignment(Qt::AlignCenter);
     m_offlineLabel->setWordWrap(true);
 
-    m_openBrowserButton = new QPushButton(tr("Open in Browser"), m_offlinePage);
-    connect(m_openBrowserButton, &QPushButton::clicked, this, [this]()
-            { emit openInBrowserRequested(m_currentUrl); });
+    m_reconnectButton = new QPushButton(tr("Reconnect"), m_offlinePage);
+    connect(m_reconnectButton, &QPushButton::clicked,
+            this, &WebViewHost::reconnectRequested);
 
     offlineLayout->addWidget(m_offlineLabel);
     offlineLayout->addSpacing(12);
-    offlineLayout->addWidget(m_openBrowserButton);
+    offlineLayout->addWidget(m_reconnectButton);
 
     m_stack->addWidget(m_webView);
     m_stack->addWidget(m_offlinePage);
