@@ -27,6 +27,8 @@ qt_add_executable(synclens
     src/app/SyncInstance.cpp
     src/app/SingleInstance.h
     src/app/SingleInstance.cpp
+    src/app/QuitOnSignal.h
+    src/app/QuitOnSignal.cpp
     src/app/UpdateChecker.h
     src/app/UpdateChecker.cpp
 

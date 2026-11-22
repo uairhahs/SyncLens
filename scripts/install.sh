@@ -13,6 +13,7 @@
 #   --user            per-user install even on Arch
 #   --version vX.Y.Z  install that release instead of the latest
 #   --force           reinstall, or downgrade
+#   --no-restart      leave a running SyncLens on the old version
 #   --uninstall       remove a per-user install
 #
 # Downloads are checked against the SHA-256 in the release's manifest.json.
@@ -27,6 +28,7 @@ FILES_LIST="${STATE_DIR}/installed-files"
 
 TAG=""
 FORCE=0
+RESTART=1
 NEW_ICON_DIRS=0
 MODE=""
 UNINSTALL=0
@@ -55,6 +57,10 @@ while [[ $# -gt 0 ]]; do
 		;;
 	--uninstall)
 		UNINSTALL=1
+		shift
+		;;
+	--no-restart)
+		RESTART=0
 		shift
 		;;
 	-h | --help)
@@ -281,10 +287,56 @@ install_user() {
 	*":${PREFIX}/bin:"*) ;;
 	*) say "==> Add ${PREFIX}/bin to your PATH to run synclens from a terminal." ;;
 	esac
-	if [[ -n ${have} ]]; then
-		say "==> A running SyncLens keeps the old version until you quit and restart it."
-	fi
 	say "==> Remove it later with: scripts/install.sh --uninstall"
+}
+
+# ---- restart a running copy ------------------------------------------------
+
+# A running SyncLens keeps the old binary in memory, so restart it on the new
+# one. Through systemd if it runs as the user service, otherwise stop it with
+# SIGTERM (SyncLens quits cleanly on it) and start the installed binary.
+restart_running() {
+	local pids
+	pids="$(pgrep -u "${UID}" -x synclens || true)"
+	[[ -n ${pids} ]] || return 0
+
+	if [[ ${RESTART} -eq 0 ]]; then
+		say "==> A running SyncLens keeps the old version until you quit and restart it."
+		return 0
+	fi
+
+	if command -v systemctl >/dev/null && systemctl --user -q is-active synclens.service 2>/dev/null; then
+		systemctl --user daemon-reload 2>/dev/null || true
+		if systemctl --user restart synclens.service; then
+			say "==> Restarted the SyncLens user service on the new version."
+		else
+			say "==> Could not restart the service; run: systemctl --user restart synclens.service"
+		fi
+		return 0
+	fi
+
+	local bin=/usr/bin/synclens
+	[[ ${MODE} == user ]] && bin="${PREFIX}/bin/synclens"
+	if [[ -z ${WAYLAND_DISPLAY-} && -z ${DISPLAY-} ]]; then
+		say "==> SyncLens is running, but this shell has no display to start the new"
+		say "    version on. Quit it from the tray menu and start it again."
+		return 0
+	fi
+
+	say "==> Restarting SyncLens on the new version"
+	# shellcheck disable=SC2086 # one PID per word
+	kill -TERM ${pids} 2>/dev/null || true
+	local i
+	for ((i = 0; i < 100; i++)); do
+		pgrep -u "${UID}" -x synclens >/dev/null || break
+		sleep 0.1
+	done
+	if pgrep -u "${UID}" -x synclens >/dev/null; then
+		say "==> SyncLens did not quit within 10 seconds; quit it from the tray menu and start it again."
+		return 0
+	fi
+	# Detached, so it outlives this script and the terminal.
+	setsid -f "${bin}" </dev/null >/dev/null 2>&1 || say "==> Could not start ${bin}; start SyncLens from your application menu."
 }
 
 if [[ -n ${have} ]]; then
@@ -299,3 +351,4 @@ done <<<"${icon_paths}"
 if [[ ${MODE} == arch ]]; then install_arch; else install_user; fi
 refresh_plasma
 say "==> SyncLens ${want} is installed."
+restart_running

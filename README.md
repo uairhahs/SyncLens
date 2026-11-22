@@ -65,7 +65,7 @@ Install the latest release, or update to it:
 curl -fsSL https://raw.githubusercontent.com/uairhahs/SyncLens/main/scripts/install.sh | bash
 ```
 
-Run the same command again whenever SyncLens tells you a new version is out. From a clone, run `scripts/install.sh` instead. The script reads the latest [release](https://github.com/uairhahs/SyncLens/releases)'s `manifest.json`, checks the download against the SHA-256 listed there, and installs it one of two ways:
+Run the same command again whenever SyncLens tells you a new version is out. If SyncLens is running, the script restarts it on the new version (through `systemctl --user` if you use the service). From a clone, run `scripts/install.sh` instead. The script reads the latest [release](https://github.com/uairhahs/SyncLens/releases)'s `manifest.json`, checks the download against the SHA-256 listed there, and installs it one of two ways:
 
 - **On Arch** it installs the Arch package with `sudo pacman -U`, so pacman tracks the files and dependencies. If SyncLens was previously installed with `cmake --install`, the package takes over those files.
 - **On other distributions**, or with `--user` on Arch, it installs into `~/.local` for your user only, with no root. This needs your distribution's Qt 6.8 or later with QtWebEngine and QtSvg, plus libsecret; the script checks they are present before installing. For example, on Debian 13 or Ubuntu 25.10 or later: `sudo apt install libqt6webenginewidgets6 libqt6svg6 libsecret-1-0`.
@@ -76,6 +76,7 @@ Run the same command again whenever SyncLens tells you a new version is out. Fro
 | `--force`          | Reinstall the same version, or downgrade      |
 | `--user`           | Per-user install even on Arch                 |
 | `--uninstall`      | Remove a per-user install (settings are kept) |
+| `--no-restart`     | Leave a running SyncLens on the old version   |
 
 Keep one copy per machine: the script refuses a per-user install while the Arch package is installed, and the other way round.
 

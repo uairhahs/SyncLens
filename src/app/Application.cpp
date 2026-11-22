@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "QuitOnSignal.h"
 #include "SingleInstance.h"
 #include "SyncInstance.h"
 #include "UpdateChecker.h"
@@ -92,6 +93,7 @@ int Application::run()
     // Another copy is already running: it has been asked to show its window.
     if (!m_single->claim())
         return 0;
+    new QuitOnSignal(this);
     connect(m_single, &SingleInstance::activationRequested, this, [this](const QString &token)
             {
         // On Wayland a window may only take focus with the launcher's token;
